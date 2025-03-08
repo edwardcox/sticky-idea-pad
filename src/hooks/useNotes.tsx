@@ -82,7 +82,6 @@ export function useNotes() {
           : note
       )
     );
-    toast.success('Note updated');
   }, []);
 
   const deleteNote = useCallback((id: string) => {

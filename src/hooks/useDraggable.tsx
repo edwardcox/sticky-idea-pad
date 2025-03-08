@@ -44,8 +44,15 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     
     const handleMouseUp = () => {
       setIsDragging(false);
+      
+      // IMPORTANT: Save the final position when drag ends
+      const finalPosition = {
+        x: Math.max(0, position.x),
+        y: Math.max(0, position.y)
+      };
+      
       if (onPositionChange) {
-        onPositionChange(position);
+        onPositionChange(finalPosition);
       }
       
       document.removeEventListener('mousemove', handleMouseMove);
@@ -84,8 +91,15 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     
     const handleTouchEnd = () => {
       setIsDragging(false);
+      
+      // IMPORTANT: Save the final position when drag ends
+      const finalPosition = {
+        x: Math.max(0, position.x),
+        y: Math.max(0, position.y)
+      };
+      
       if (onPositionChange) {
-        onPositionChange(position);
+        onPositionChange(finalPosition);
       }
       
       document.removeEventListener('touchmove', handleTouchMove);

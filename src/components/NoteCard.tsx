@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { Pencil } from 'lucide-react';
 import { Note } from '@/lib/data';
 import { PriorityBadge } from './PriorityBadge';
@@ -25,13 +25,12 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
   const rotationClasses = ['note-rotate-1', 'note-rotate-2', 'note-rotate-3', 'note-rotate-4', ''];
   const rotationClass = rotationClasses[note.id.charCodeAt(0) % rotationClasses.length];
   
-  // Set up draggable functionality
+  // Set up draggable functionality with proper position handling
   const { position, isDragging, handleMouseDown, handleTouchStart } = useDraggable({
     initialPosition: note.position || { x: 0, y: 0 },
     onPositionChange: (newPosition) => {
-      if (newPosition.x !== note.position?.x || newPosition.y !== note.position?.y) {
-        onUpdate(note.id, { position: newPosition });
-      }
+      // This updates the note with the new position in the storage
+      onUpdate(note.id, { position: newPosition });
     }
   });
   
@@ -48,13 +47,6 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
       }
     }
   });
-
-  // Update the component when note position changes from props
-  useEffect(() => {
-    if (note.position && (position.x !== note.position.x || position.y !== note.position.y)) {
-      // This ensures positions are synchronized when they come from localStorage
-    }
-  }, [note.position]);
 
   const handleUpdatePriority = () => {
     const priorities = ['normal', 'action', 'urgent'] as const;
