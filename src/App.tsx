@@ -10,7 +10,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 // Determine the base URL based on environment
-const baseUrl = import.meta.env.DEV ? '/' : '/sticky-ideas/';
+const baseUrl = import.meta.env.BASE_URL;
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

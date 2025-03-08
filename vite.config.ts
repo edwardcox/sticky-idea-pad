@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  base: '/sticky-ideas/',  // Add this line to specify the base path
+  base: '/sticky-ideas/',  // This is correct for the subdirectory
   plugins: [
     react(),
     mode === 'development' &&
