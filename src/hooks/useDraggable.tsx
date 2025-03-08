@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 interface Position {
   x: number;
@@ -16,12 +16,14 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
   const [isDragging, setIsDragging] = useState(false);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
   
-  // Update position when props change
+  // Update position when initialPosition prop changes
   useEffect(() => {
-    setPosition(initialPosition);
-  }, [initialPosition]);
+    if (!isDragging && initialPosition) {
+      setPosition(initialPosition);
+    }
+  }, [initialPosition, isDragging]);
   
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
     // Ignore if clicking on buttons or form elements
     if ((e.target as HTMLElement).closest('button') || 
         (e.target as HTMLElement).closest('input') ||
@@ -35,20 +37,20 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     // Add event listeners to window to handle dragging
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
-  };
+  }, [position]);
 
-  const handleMouseMove = (e: MouseEvent) => {
+  const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging) return;
     
     const newPosition = {
-      x: e.clientX - startPos.x,
-      y: e.clientY - startPos.y
+      x: Math.max(0, e.clientX - startPos.x),
+      y: Math.max(0, e.clientY - startPos.y)
     };
     
     setPosition(newPosition);
-  };
+  }, [isDragging, startPos]);
 
-  const handleMouseUp = () => {
+  const handleMouseUp = useCallback(() => {
     if (isDragging) {
       setIsDragging(false);
       
@@ -61,7 +63,15 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     }
-  };
+  }, [isDragging, onPositionChange, position, handleMouseMove]);
+
+  // Clean up event listeners when component unmounts
+  useEffect(() => {
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [handleMouseMove, handleMouseUp]);
 
   return {
     position,

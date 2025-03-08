@@ -11,7 +11,15 @@ const deserializeNote = (note: any): Note => {
   return {
     ...note,
     createdAt: new Date(note.createdAt),
-    updatedAt: new Date(note.updatedAt)
+    updatedAt: new Date(note.updatedAt),
+    // Ensure position is properly restored if it exists
+    position: note.position ? {
+      x: Number(note.position.x),
+      y: Number(note.position.y)
+    } : undefined,
+    // Ensure width/height are properly restored
+    width: note.width ? Number(note.width) : undefined,
+    height: note.height ? Number(note.height) : undefined
   };
 };
 
@@ -29,7 +37,14 @@ export function useNotes() {
           : defaultNotes;
       }
       
-      return defaultNotes;
+      // Add default positions to default notes if they don't exist
+      return defaultNotes.map((note, index) => ({
+        ...note,
+        position: note.position || {
+          x: 100 + (index * 50),
+          y: 100 + (index * 30)
+        }
+      }));
     } catch (error) {
       console.error('Failed to load notes from localStorage:', error);
       return defaultNotes;

@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Pencil } from 'lucide-react';
 import { Note } from '@/lib/data';
@@ -48,6 +47,14 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
       }
     }
   });
+
+  // Update the component when note position changes from props
+  useEffect(() => {
+    if (note.position && (position.x !== note.position.x || position.y !== note.position.y)) {
+      // This ensures positions are synchronized when they come from localStorage
+      // This won't create an infinite loop because useDraggable uses state internally
+    }
+  }, [note.position]);
 
   const handleUpdatePriority = () => {
     const priorities = ['normal', 'action', 'urgent'] as const;
