@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,19 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+        note: {
+          yellow: '#FFDE59',
+          blue: '#7EC8E3',
+          green: '#9DE0AD',
+          pink: '#FFAFCC',
+          orange: '#FFBD59'
+        },
+        priority: {
+          urgent: '#FF5A5A',
+          action: '#FF9A3C',
+          normal: '#4CAF50'
+        }
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -70,26 +83,43 @@ export default {
 			},
 			keyframes: {
 				'accordion-down': {
-					from: {
-						height: '0'
-					},
-					to: {
-						height: 'var(--radix-accordion-content-height)'
-					}
+					from: { height: '0' },
+					to: { height: 'var(--radix-accordion-content-height)' }
 				},
 				'accordion-up': {
-					from: {
-						height: 'var(--radix-accordion-content-height)'
-					},
-					to: {
-						height: '0'
-					}
-				}
+					from: { height: 'var(--radix-accordion-content-height)' },
+					to: { height: '0' }
+				},
+        'float-in': {
+          '0%': { 
+            opacity: '0',
+            transform: 'translateY(20px) scale(0.95)' 
+          },
+          '100%': { 
+            opacity: '1',
+            transform: 'translateY(0) scale(1)' 
+          }
+        },
+        'spin-slow': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' }
+        },
+        'pulse-subtle': {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0.8' }
+        }
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
-			}
+				'accordion-up': 'accordion-up 0.2s ease-out',
+        'float-in': 'float-in 0.3s ease-out forwards',
+        'spin-slow': 'spin-slow 8s linear infinite',
+        'pulse-subtle': 'pulse-subtle 3s ease-in-out infinite'
+			},
+      transitionProperty: {
+        'height': 'height',
+        'spacing': 'margin, padding',
+      }
 		}
 	},
 	plugins: [require("tailwindcss-animate")],
