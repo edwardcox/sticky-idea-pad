@@ -37,7 +37,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f9f9f9] pb-20">
+    <div className="flex flex-col min-h-screen bg-[#f9f9f9]">
       <header className="bg-white shadow-sm py-4 px-6 sticky top-0 z-20">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-2">
@@ -50,10 +50,10 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
         <div 
           ref={notesContainerRef} 
-          className="notes-workspace relative min-h-[calc(100vh-200px)]"
+          className="notes-workspace relative min-h-[calc(100vh-300px)]"
         >
           {notes.length === 0 && !isAddingNote ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -94,7 +94,7 @@ const Index = () => {
         )}
       </main>
 
-      <footer className="bg-white border-t py-4 text-center text-sm text-gray-500">
+      <footer className="bg-white border-t py-4 text-center text-sm text-gray-500 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p>©2025 Edward Cox • Version 1.0</p>
         </div>
