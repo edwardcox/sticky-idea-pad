@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { NoteCard } from '@/components/NoteCard';
 import { AddNoteButton } from '@/components/AddNoteButton';
 import { NoteForm } from '@/components/NoteForm';
@@ -9,6 +9,32 @@ import { StickyNote } from 'lucide-react';
 const Index = () => {
   const { notes, addNote, updateNote, deleteNote } = useNotes();
   const [isAddingNote, setIsAddingNote] = useState(false);
+  const notesContainerRef = useRef<HTMLDivElement>(null);
+  
+  // This ensures that new notes without a position are positioned in the visible area
+  const handleAddNote = (newNote: any) => {
+    // Create initial position if the container is available
+    let initialPosition = { x: 100, y: 100 };
+    
+    if (notesContainerRef.current) {
+      const container = notesContainerRef.current;
+      const rect = container.getBoundingClientRect();
+      
+      // Set a random position within the visible area, with some padding
+      initialPosition = {
+        x: Math.floor(Math.random() * (rect.width - 300)) + 50,
+        y: Math.floor(Math.random() * (Math.min(500, rect.height - 300))) + 100
+      };
+    }
+    
+    const noteWithPosition = {
+      ...newNote,
+      position: initialPosition
+    };
+    
+    addNote(noteWithPosition);
+    setIsAddingNote(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#f9f9f9] pb-20">
@@ -24,43 +50,44 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {notes.length === 0 && !isAddingNote ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <div className="bg-primary/5 p-12 rounded-full mb-6 animate-pulse-subtle">
-              <StickyNote className="h-16 w-16 text-primary/70" />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+        <div 
+          ref={notesContainerRef} 
+          className="notes-workspace relative min-h-[calc(100vh-200px)]"
+        >
+          {notes.length === 0 && !isAddingNote ? (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="bg-primary/5 p-12 rounded-full mb-6 animate-pulse-subtle">
+                <StickyNote className="h-16 w-16 text-primary/70" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">No notes yet</h2>
+              <p className="text-muted-foreground mb-6 max-w-md">
+                Create your first note by clicking the + button in the bottom right corner.
+              </p>
+              <button
+                onClick={() => setIsAddingNote(true)}
+                className="button-press text-primary underline font-medium"
+              >
+                Create my first note
+              </button>
             </div>
-            <h2 className="text-2xl font-bold mb-2">No notes yet</h2>
-            <p className="text-muted-foreground mb-6 max-w-md">
-              Create your first note by clicking the + button in the bottom right corner.
-            </p>
-            <button
-              onClick={() => setIsAddingNote(true)}
-              className="button-press text-primary underline font-medium"
-            >
-              Create my first note
-            </button>
-          </div>
-        ) : (
-          <div className="note-container">
-            {notes.map((note) => (
+          ) : (
+            notes.map((note, index) => (
               <NoteCard
                 key={note.id}
                 note={note}
                 onUpdate={updateNote}
                 onDelete={deleteNote}
+                index={index}
               />
-            ))}
-          </div>
-        )}
+            ))
+          )}
+        </div>
 
         {isAddingNote && (
           <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 flex items-center justify-center p-4">
             <NoteForm
-              onSubmit={(newNote) => {
-                addNote(newNote);
-                setIsAddingNote(false);
-              }}
+              onSubmit={handleAddNote}
               onCancel={() => setIsAddingNote(false)}
             />
           </div>

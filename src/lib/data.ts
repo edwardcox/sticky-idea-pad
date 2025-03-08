@@ -1,15 +1,17 @@
-
 export type Priority = 'urgent' | 'action' | 'normal';
 
-export type Note = {
+export interface Note {
   id: string;
   title: string;
   content: string;
-  color: 'yellow' | 'blue' | 'green' | 'pink' | 'orange';
+  color: string;
   priority: Priority;
   createdAt: Date;
   updatedAt: Date;
-};
+  position?: { x: number, y: number };
+  width?: number;
+  height?: number;
+}
 
 // Default notes for initial state
 export const defaultNotes: Note[] = [

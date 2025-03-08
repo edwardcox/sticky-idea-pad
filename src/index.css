@@ -53,6 +53,13 @@
 }
 
 @layer components {
+  .notes-workspace {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    min-height: 70vh;
+  }
+
   .note-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -83,6 +90,29 @@
   .note-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+
+  .note-card.dragging {
+    transform: rotate(0deg) scale(1.02);
+    box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    transition: none;
+    z-index: 100;
+  }
+
+  .resize-handle {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    bottom: 0;
+    right: 0;
+    cursor: nwse-resize;
+    background: rgba(0,0,0,0.05);
+    transition: background 0.2s ease;
+  }
+
+  .resize-handle:hover,
+  .resize-handle:active {
+    background: rgba(0,0,0,0.1);
   }
 
   .glass-panel {
