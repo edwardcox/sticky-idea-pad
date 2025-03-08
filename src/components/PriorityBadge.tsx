@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { CircleAlert, CircleCheck, CircleX } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { 
   Tooltip,
@@ -25,23 +24,20 @@ export function PriorityBadge({
 }: PriorityBadgeProps) {
   const config = {
     urgent: {
-      icon: CircleX,
-      color: 'text-priority-urgent',
+      color: 'bg-priority-urgent text-white',
       label: 'Urgent'
     },
     action: {
-      icon: CircleAlert,
-      color: 'text-priority-action',
-      label: 'Action Required'
+      color: 'bg-priority-action text-white',
+      label: 'Action'
     },
     normal: {
-      icon: CircleCheck,
-      color: 'text-priority-normal',
+      color: 'bg-priority-normal text-white',
       label: 'Normal'
     }
   };
 
-  const { icon: Icon, color, label } = config[priority];
+  const { color, label } = config[priority];
 
   return (
     <TooltipProvider>
@@ -51,17 +47,17 @@ export function PriorityBadge({
             type="button"
             onClick={onClick}
             className={cn(
-              "priority-indicator transition-transform duration-200 hover:scale-110",
+              "priority-button px-3 py-1 rounded-full text-xs font-medium transition-all duration-200",
               color,
               className
             )}
             aria-label={`Priority: ${label}. Click to change`}
           >
-            <Icon size={size} className="drop-shadow-sm" />
+            {label}
           </button>
         </TooltipTrigger>
         <TooltipContent>
-          <p className="text-xs font-medium">{label} - Click to change</p>
+          <p className="text-xs font-medium">Click to change priority</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
