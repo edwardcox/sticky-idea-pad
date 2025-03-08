@@ -66,6 +66,8 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
 
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length !== 1) return;
+      
+      // Add passive: false to prevent default behavior
       e.preventDefault();
       
       const touch = e.touches[0];
@@ -77,14 +79,14 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     const handleDragEnd = () => {
       setIsDragging(false);
       
-      // Important: Call the callback with the CURRENT position
+      // Call the callback with the CURRENT position
       if (onPositionChange) {
         onPositionChange(position);
       }
     };
 
     // Add event listeners
-    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mousemove', handleMouseMove, { passive: false });
     document.addEventListener('mouseup', handleDragEnd);
     document.addEventListener('touchmove', handleTouchMove, { passive: false });
     document.addEventListener('touchend', handleDragEnd);

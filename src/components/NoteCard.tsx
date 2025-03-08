@@ -1,5 +1,5 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Pencil } from 'lucide-react';
 import { Note } from '@/lib/data';
 import { PriorityBadge } from './PriorityBadge';
@@ -29,7 +29,7 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
   const { position, isDragging, handleMouseDown, handleTouchStart } = useDraggable({
     initialPosition: note.position || { x: 0, y: 0 },
     onPositionChange: (newPosition) => {
-      // This is critical - we need to update the note in the parent component
+      // Update the note position in the parent component
       onUpdate(note.id, { position: newPosition });
     }
   });
