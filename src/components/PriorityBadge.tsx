@@ -55,12 +55,13 @@ export function PriorityBadge({
               color,
               className
             )}
+            aria-label={`Priority: ${label}. Click to change`}
           >
             <Icon size={size} className="drop-shadow-sm" />
           </button>
         </TooltipTrigger>
         <TooltipContent>
-          <p className="text-xs font-medium">{label}</p>
+          <p className="text-xs font-medium">{label} - Click to change</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { X, Bold, Italic, Underline } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Note, noteColors, priorities, Priority } from '@/lib/data';
+import { Note, noteColors, Priority } from '@/lib/data';
 import { PriorityBadge } from './PriorityBadge';
 
 interface NoteFormProps {

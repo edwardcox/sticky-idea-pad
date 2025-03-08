@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
-import { Note } from '@/lib/data';
+import { Note, Priority } from '@/lib/data';
 import { PriorityBadge } from './PriorityBadge';
 import { NoteForm } from './NoteForm';
 import { Button } from '@/components/ui/button';
@@ -37,7 +37,7 @@ export function NoteCard({ note, onUpdate, onDelete }: NoteCardProps) {
   };
 
   const handleUpdatePriority = () => {
-    const priorities: ('normal' | 'action' | 'urgent')[] = ['normal', 'action', 'urgent'];
+    const priorities: Priority[] = ['normal', 'action', 'urgent'];
     const currentIndex = priorities.indexOf(note.priority);
     const nextIndex = (currentIndex + 1) % priorities.length;
     onUpdate(note.id, { priority: priorities[nextIndex] });
