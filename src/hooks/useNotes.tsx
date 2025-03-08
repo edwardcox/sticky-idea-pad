@@ -28,15 +28,18 @@ export function useNotes() {
     try {
       // Load notes from localStorage or use defaults
       const savedNotes = localStorage.getItem(STORAGE_KEY);
+      console.log("Loading notes from localStorage:", savedNotes);
       
       if (savedNotes) {
         // Parse the JSON and ensure dates are properly deserialized
         const parsedNotes = JSON.parse(savedNotes);
+        console.log("Parsed notes:", parsedNotes);
         return Array.isArray(parsedNotes) 
           ? parsedNotes.map(deserializeNote)
           : defaultNotes;
       }
       
+      console.log("No saved notes found, using default notes");
       // Add default positions to default notes if they don't exist
       return defaultNotes.map((note, index) => ({
         ...note,
@@ -55,6 +58,7 @@ export function useNotes() {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+      console.log("Saved notes to localStorage:", notes);
     } catch (error) {
       console.error('Failed to save notes to localStorage:', error);
       toast.error('Failed to save your notes. You may be in private browsing mode.');
@@ -71,10 +75,12 @@ export function useNotes() {
     
     setNotes(prev => [newNote, ...prev]);
     toast.success('Note created');
+    console.log("Note added:", newNote);
     return newNote;
   }, []);
 
   const updateNote = useCallback((id: string, updates: Partial<Omit<Note, 'id' | 'createdAt'>>) => {
+    console.log("Updating note:", id, updates);
     setNotes(prev => 
       prev.map(note => 
         note.id === id 
@@ -85,6 +91,7 @@ export function useNotes() {
   }, []);
 
   const deleteNote = useCallback((id: string) => {
+    console.log("Deleting note:", id);
     setNotes(prev => prev.filter(note => note.id !== id));
     toast.success('Note deleted');
   }, []);

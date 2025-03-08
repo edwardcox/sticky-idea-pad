@@ -16,6 +16,11 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
   const [isDragging, setIsDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
+  // Debug logging
+  useEffect(() => {
+    console.log("useDraggable initialPosition:", initialPosition);
+  }, [initialPosition]);
+
   // Update internal position when initialPosition changes and not dragging
   useEffect(() => {
     if (!isDragging) {
@@ -36,6 +41,7 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     });
     
     setIsDragging(true);
+    console.log("Mouse down - dragging started");
   }, [position]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -52,6 +58,7 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     });
     
     setIsDragging(true);
+    console.log("Touch start - dragging started");
   }, [position]);
 
   // Set up document-level event handlers when dragging starts
@@ -67,7 +74,7 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length !== 1) return;
       
-      // Add passive: false to prevent default behavior
+      // Explicitly prevent default behavior
       e.preventDefault();
       
       const touch = e.touches[0];
@@ -78,6 +85,7 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
 
     const handleDragEnd = () => {
       setIsDragging(false);
+      console.log("Drag ended - updating position");
       
       // Call the callback with the CURRENT position
       if (onPositionChange) {
@@ -86,11 +94,13 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     };
 
     // Add event listeners
-    document.addEventListener('mousemove', handleMouseMove, { passive: false });
+    document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleDragEnd);
     document.addEventListener('touchmove', handleTouchMove, { passive: false });
     document.addEventListener('touchend', handleDragEnd);
     document.addEventListener('touchcancel', handleDragEnd);
+
+    console.log("Drag event listeners added");
 
     // Clean up
     return () => {
@@ -99,6 +109,7 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleDragEnd);
       document.removeEventListener('touchcancel', handleDragEnd);
+      console.log("Drag event listeners removed");
     };
   }, [isDragging, offset, position, onPositionChange]);
 

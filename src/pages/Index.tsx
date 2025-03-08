@@ -36,6 +36,11 @@ const Index = () => {
     setIsAddingNote(false);
   };
 
+  // Debug log to verify notes are being loaded
+  useEffect(() => {
+    console.log("Notes loaded:", notes);
+  }, [notes]);
+
   return (
     <div className="flex flex-col min-h-screen bg-[#f9f9f9]">
       <header className="bg-white shadow-sm py-4 px-6 sticky top-0 z-20">
@@ -54,6 +59,7 @@ const Index = () => {
         <div 
           ref={notesContainerRef} 
           className="notes-workspace relative min-h-[calc(100vh-300px)]"
+          style={{ position: 'relative' }}
         >
           {notes.length === 0 && !isAddingNote ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">

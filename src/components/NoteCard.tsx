@@ -22,6 +22,11 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const noteRef = useRef<HTMLDivElement>(null);
   
+  // Debug log when note renders
+  useEffect(() => {
+    console.log("NoteCard rendering:", note.id, note.title, note.position);
+  }, [note]);
+  
   const rotationClasses = ['note-rotate-1', 'note-rotate-2', 'note-rotate-3', 'note-rotate-4', ''];
   const rotationClass = rotationClasses[note.id.charCodeAt(0) % rotationClasses.length];
   
@@ -80,7 +85,7 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
         width: `${size.width}px`,
         height: size.height === 'auto' ? 'auto' : `${size.height}px`,
         zIndex: isDragging ? 100 : 10 + index,
-        animationDelay: `${(parseInt(note.id) % 5) * 0.1}s`,
+        animationDelay: `${(index % 5) * 0.1}s`,
         transition: isDragging || isResizing ? 'none' : 'box-shadow 0.2s ease, transform 0.2s ease',
         cursor: isDragging ? 'grabbing' : 'grab',
         userSelect: isDragging ? 'none' : 'auto'
