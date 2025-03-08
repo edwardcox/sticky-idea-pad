@@ -1,150 +1,59 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
-import { Note, Priority } from '@/lib/data';
+import { Pencil } from 'lucide-react';
+import { Note } from '@/lib/data';
 import { PriorityBadge } from './PriorityBadge';
 import { NoteForm } from './NoteForm';
 import { Button } from '@/components/ui/button';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger
-} from '@/components/ui/alert-dialog';
+import { NoteDeleteDialog } from './NoteDeleteDialog';
+import { NoteResizeHandle } from './NoteResizeHandle';
+import { NoteContent } from './NoteContent';
+import { useDraggable } from '@/hooks/useDraggable';
+import { useResizable } from '@/hooks/useResizable';
 
 interface NoteCardProps {
   note: Note;
   onUpdate: (id: string, updates: Partial<Omit<Note, 'id' | 'createdAt'>>) => void;
   onDelete: (id: string) => void;
-  index: number; // Add index for z-index calculation
+  index: number;
 }
 
 export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [position, setPosition] = useState({ x: note.position?.x || 0, y: note.position?.y || 0 });
-  const [size, setSize] = useState({ width: note.width || 280, height: note.height || 'auto' });
-  const [isDragging, setIsDragging] = useState(false);
-  const [isResizing, setIsResizing] = useState(false);
-  const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-  const [startSize, setStartSize] = useState({ width: 0, height: 0 });
   const noteRef = useRef<HTMLDivElement>(null);
   
   const rotationClasses = ['note-rotate-1', 'note-rotate-2', 'note-rotate-3', 'note-rotate-4', ''];
   const rotationClass = rotationClasses[note.id.charCodeAt(0) % rotationClasses.length];
-
-  // Update position in state when prop changes
-  useEffect(() => {
-    if (note.position) {
-      setPosition(note.position);
-    }
-  }, [note.position]);
   
-  // Update size in state when prop changes
-  useEffect(() => {
-    setSize({
-      width: note.width || 280,
-      height: note.height || 'auto'
-    });
-  }, [note.width, note.height]);
-
-  // Save position and size to the note when changed
-  useEffect(() => {
-    if (!isDragging && !isResizing && 
-       (position.x !== note.position?.x || 
-        position.y !== note.position?.y ||
-        size.width !== note.width)) {
-      onUpdate(note.id, { 
-        position: position,
-        width: size.width as number,
-        height: size.height === 'auto' ? undefined : size.height as number
-      });
+  // Set up draggable functionality
+  const { position, isDragging, handleMouseDown } = useDraggable({
+    initialPosition: note.position || { x: 0, y: 0 },
+    onPositionChange: (newPosition) => {
+      if (newPosition.x !== note.position?.x || newPosition.y !== note.position?.y) {
+        onUpdate(note.id, { position: newPosition });
+      }
     }
-  }, [isDragging, isResizing]);
-
-  const formatContent = (content: string) => {
-    return content
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/__(.*?)__/g, '<u>$1</u>')
-      .replace(/\n/g, '<br />');
-  };
+  });
+  
+  // Set up resizable functionality
+  const { size, isResizing, handleResizeStart } = useResizable({
+    initialWidth: note.width || 280,
+    initialHeight: note.height || 'auto',
+    onSizeChange: (newSize) => {
+      if (newSize.width !== note.width) {
+        onUpdate(note.id, { 
+          width: newSize.width as number,
+          height: newSize.height === 'auto' ? undefined : newSize.height as number
+        });
+      }
+    }
+  });
 
   const handleUpdatePriority = () => {
-    const priorities: Priority[] = ['normal', 'action', 'urgent'];
+    const priorities = ['normal', 'action', 'urgent'] as const;
     const currentIndex = priorities.indexOf(note.priority);
     const nextIndex = (currentIndex + 1) % priorities.length;
     onUpdate(note.id, { priority: priorities[nextIndex] });
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // Ignore if clicking on buttons or form elements
-    if ((e.target as HTMLElement).closest('button') || 
-        (e.target as HTMLElement).closest('input') ||
-        (e.target as HTMLElement).closest('.resize-handle')) {
-      return;
-    }
-    
-    setIsDragging(true);
-    setStartPos({ x: e.clientX - position.x, y: e.clientY - position.y });
-    
-    // Add event listeners to window to handle dragging
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isDragging) return;
-    
-    setPosition({
-      x: e.clientX - startPos.x,
-      y: e.clientY - startPos.y
-    });
-  };
-
-  const handleMouseUp = () => {
-    if (isDragging) {
-      setIsDragging(false);
-      
-      // Remove event listeners
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    }
-    
-    if (isResizing) {
-      setIsResizing(false);
-      
-      // Remove resize event listeners
-      window.removeEventListener('mousemove', handleResize);
-      window.removeEventListener('mouseup', handleMouseUp);
-    }
-  };
-  
-  // Resize functionality
-  const handleResizeStart = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setIsResizing(true);
-    setStartPos({ x: e.clientX, y: e.clientY });
-    setStartSize({ width: size.width as number, height: size.height === 'auto' ? 200 : size.height as number });
-    
-    window.addEventListener('mousemove', handleResize);
-    window.addEventListener('mouseup', handleMouseUp);
-  };
-  
-  const handleResize = (e: MouseEvent) => {
-    if (!isResizing) return;
-    
-    const newWidth = Math.max(startSize.width + (e.clientX - startPos.x), 200);
-    const newHeight = Math.max(startSize.height + (e.clientY - startPos.y), 150);
-    
-    setSize({
-      width: newWidth,
-      height: newHeight
-    });
   };
 
   if (isEditing) {
@@ -186,10 +95,7 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
           />
         </div>
         
-        <div 
-          className="note-content flex-grow mb-4 overflow-hidden"
-          dangerouslySetInnerHTML={{ __html: formatContent(note.content) }}
-        />
+        <NoteContent content={note.content} />
         
         <div className="flex justify-end space-x-2 mt-auto">
           <Button 
@@ -201,35 +107,11 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
             <Pencil size={16} />
           </Button>
           
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <Trash2 size={16} />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete Note</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Are you sure you want to delete this note? This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => onDelete(note.id)}>
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <NoteDeleteDialog onDelete={() => onDelete(note.id)} />
         </div>
       </div>
       
-      {/* Resize handle */}
-      <div 
-        className="resize-handle"
-        onMouseDown={handleResizeStart}
-      ></div>
+      <NoteResizeHandle onResizeStart={handleResizeStart} />
     </div>
   );
 }
