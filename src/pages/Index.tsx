@@ -59,16 +59,18 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 relative">
+      <main className="flex-grow w-full px-4 sm:px-6 lg:px-8 py-8 relative">
         <div 
           ref={notesContainerRef} 
           className="notes-workspace relative"
           style={{ 
             position: 'relative', 
-            width: '100%', 
-            minHeight: 'calc(100vh - 180px)',
-            height: '100%',
-            overflow: 'visible'
+            width: '200%', // Double the width
+            minHeight: '400vh', // Quadruple the height
+            height: '400vh',
+            overflow: 'visible',
+            border: '1px dashed rgba(0, 0, 0, 0.1)',
+            margin: '0 auto'
           }}
         >
           {notes.length === 0 && !isAddingNote ? (

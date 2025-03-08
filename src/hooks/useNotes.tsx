@@ -23,10 +23,11 @@ const deserializeNote = (note: any): Note => {
   };
 };
 
-// Function to generate a random position within the viewport
+// Function to generate a random position within the expanded viewport
 const generateRandomPosition = () => {
-  const maxX = typeof window !== 'undefined' ? Math.max(window.innerWidth - 350, 400) : 500;
-  const maxY = typeof window !== 'undefined' ? Math.max(window.innerHeight - 350, 400) : 500;
+  // Get window dimensions with multipliers to create a larger workspace
+  const maxX = typeof window !== 'undefined' ? Math.max(window.innerWidth * 1.8, 1800) : 1800;
+  const maxY = typeof window !== 'undefined' ? Math.max(window.innerHeight * 3.5, 3500) : 3500;
   
   return {
     x: Math.floor(Math.random() * maxX) + 50,
@@ -56,8 +57,8 @@ export function useNotes() {
       return defaultNotes.map((note, index) => ({
         ...note,
         position: note.position || {
-          x: 100 + (index * 50),
-          y: 100 + (index * 30)
+          x: 100 + (index * 150),
+          y: 100 + (index * 100)
         }
       }));
     } catch (error) {
@@ -66,8 +67,8 @@ export function useNotes() {
       return defaultNotes.map((note, index) => ({
         ...note,
         position: {
-          x: 100 + (index * 50),
-          y: 100 + (index * 30)
+          x: 100 + (index * 150),
+          y: 100 + (index * 100)
         }
       }));
     }

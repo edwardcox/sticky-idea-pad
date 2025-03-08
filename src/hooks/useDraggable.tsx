@@ -16,16 +16,16 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
   const [isDragging, setIsDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const boundaryRef = useRef({
-    width: typeof window !== 'undefined' ? window.innerWidth : 1000,
-    height: typeof window !== 'undefined' ? window.innerHeight * 2 : 2000
+    width: typeof window !== 'undefined' ? window.innerWidth * 2 : 2000,
+    height: typeof window !== 'undefined' ? window.innerHeight * 4 : 4000
   });
 
   // Update window dimensions on resize
   useEffect(() => {
     const updateBoundary = () => {
       boundaryRef.current = {
-        width: window.innerWidth,
-        height: Math.max(window.innerHeight * 2, 2000) // Make sure we have a large vertical space
+        width: window.innerWidth * 2, // Doubled the width
+        height: window.innerHeight * 4 // Quadrupled the height for much more vertical space
       };
       console.log("Boundary updated:", boundaryRef.current);
     };
@@ -62,6 +62,9 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     
     setIsDragging(true);
     console.log("Mouse down - dragging started at", position);
+    
+    // Add class to body to indicate dragging (helps with cursor and preventing text selection)
+    document.body.classList.add('dragging');
   }, [position]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -82,6 +85,9 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     
     setIsDragging(true);
     console.log("Touch start - dragging started at", position);
+    
+    // Add class to body to indicate dragging
+    document.body.classList.add('dragging');
   }, [position]);
 
   // Set up document-level event handlers when dragging starts
@@ -91,7 +97,7 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     const handleMouseMove = (e: MouseEvent) => {
       e.preventDefault();
       
-      // Calculate new position with boundary limits
+      // Calculate new position with expanded boundary limits
       const newX = Math.max(0, Math.min(e.clientX - offset.x, boundaryRef.current.width - 100));
       const newY = Math.max(0, Math.min(e.clientY - offset.y, boundaryRef.current.height - 100));
       
@@ -106,7 +112,7 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
       
       const touch = e.touches[0];
       
-      // Calculate new position with boundary limits
+      // Calculate new position with expanded boundary limits
       const newX = Math.max(0, Math.min(touch.clientX - offset.x, boundaryRef.current.width - 100));
       const newY = Math.max(0, Math.min(touch.clientY - offset.y, boundaryRef.current.height - 100));
       
@@ -121,6 +127,9 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
         console.log("Drag ended - updating position to", position);
         onPositionChange(position);
       }
+      
+      // Remove dragging class
+      document.body.classList.remove('dragging');
     };
 
     // Add event listeners
@@ -139,6 +148,7 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
       document.removeEventListener('touchmove', handleTouchMove);
       document.removeEventListener('touchend', handleDragEnd);
       document.removeEventListener('touchcancel', handleDragEnd);
+      document.body.classList.remove('dragging');
       console.log("Drag event listeners removed");
     };
   }, [isDragging, offset, position, onPositionChange]);
