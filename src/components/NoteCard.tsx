@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Pencil } from 'lucide-react';
 import { Note } from '@/lib/data';
@@ -25,7 +26,7 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
   const rotationClass = rotationClasses[note.id.charCodeAt(0) % rotationClasses.length];
   
   // Set up draggable functionality
-  const { position, isDragging, handleMouseDown } = useDraggable({
+  const { position, isDragging, handleMouseDown, handleTouchStart } = useDraggable({
     initialPosition: note.position || { x: 0, y: 0 },
     onPositionChange: (newPosition) => {
       if (newPosition.x !== note.position?.x || newPosition.y !== note.position?.y) {
@@ -92,6 +93,7 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
         transition: isDragging || isResizing ? 'none' : 'box-shadow 0.2s ease, transform 0.2s ease'
       }}
       onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
     >
       <div className="flex flex-col h-full">
         <div className="mb-1 flex justify-between items-start">

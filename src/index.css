@@ -49,6 +49,11 @@
   body {
     @apply bg-[#f9f9f9] text-foreground font-sans antialiased;
     font-family: 'Quicksand', sans-serif;
+    touch-action: manipulation;
+  }
+  
+  .dragging, .dragging * {
+    user-select: none !important;
   }
 }
 
@@ -75,6 +80,7 @@
     transition: all 0.2s ease;
     overflow: hidden;
     transform-origin: center;
+    touch-action: none;
   }
 
   .note-card::before {
@@ -97,6 +103,7 @@
     box-shadow: 0 15px 30px rgba(0,0,0,0.15);
     transition: none;
     z-index: 100;
+    opacity: 0.9;
   }
 
   .resize-handle {
@@ -210,4 +217,20 @@
 
 .priority-indicator:hover {
   transform: scale(1.2);
+}
+
+.cursor-grab:hover:not(.dragging) {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+  .note-card {
+    touch-action: none;
+  }
+  
+  .notes-workspace {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }
