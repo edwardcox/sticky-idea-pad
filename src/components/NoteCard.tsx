@@ -25,11 +25,11 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
   const rotationClasses = ['note-rotate-1', 'note-rotate-2', 'note-rotate-3', 'note-rotate-4', ''];
   const rotationClass = rotationClasses[note.id.charCodeAt(0) % rotationClasses.length];
   
-  // Set up draggable functionality with proper position handling
+  // Set up draggable functionality
   const { position, isDragging, handleMouseDown, handleTouchStart } = useDraggable({
     initialPosition: note.position || { x: 0, y: 0 },
     onPositionChange: (newPosition) => {
-      // This updates the note with the new position in the storage
+      // This is critical - we need to update the note in the parent component
       onUpdate(note.id, { position: newPosition });
     }
   });
@@ -53,28 +53,6 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
     const currentIndex = priorities.indexOf(note.priority);
     const nextIndex = (currentIndex + 1) % priorities.length;
     onUpdate(note.id, { priority: priorities[nextIndex] });
-  };
-
-  const handleCardInteraction = (e: React.MouseEvent | React.TouchEvent) => {
-    // Don't initiate drag when clicking on interactive elements
-    const target = e.target as HTMLElement;
-    if (
-      target.closest('button') || 
-      target.closest('input') || 
-      target.closest('textarea') ||
-      target.closest('.resize-handle')
-    ) {
-      return;
-    }
-    
-    // Prevent text selection during drag
-    e.preventDefault();
-    
-    if ('touches' in e) {
-      handleTouchStart(e);
-    } else {
-      handleMouseDown(e);
-    }
   };
 
   if (isEditing) {
@@ -104,10 +82,11 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
         zIndex: isDragging ? 100 : 10 + index,
         animationDelay: `${(parseInt(note.id) % 5) * 0.1}s`,
         transition: isDragging || isResizing ? 'none' : 'box-shadow 0.2s ease, transform 0.2s ease',
-        cursor: isDragging ? 'grabbing' : 'grab'
+        cursor: isDragging ? 'grabbing' : 'grab',
+        userSelect: isDragging ? 'none' : 'auto'
       }}
-      onMouseDown={handleCardInteraction}
-      onTouchStart={handleCardInteraction}
+      onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
     >
       <div className="flex flex-col h-full">
         <div className="mb-1 flex justify-between items-start">
@@ -120,12 +99,15 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
         
         <NoteContent content={note.content} />
         
-        <div className="flex justify-end space-x-2 mt-auto">
+        <div className="flex justify-end space-x-2 mt-auto" onClick={(e) => e.stopPropagation()}>
           <Button 
             variant="ghost" 
             size="sm" 
             className="h-8 w-8 p-0" 
-            onClick={() => setIsEditing(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(true);
+            }}
           >
             <Pencil size={16} />
           </Button>
@@ -134,7 +116,10 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
         </div>
       </div>
       
-      <NoteResizeHandle onResizeStart={handleResizeStart} />
+      <NoteResizeHandle onResizeStart={(e) => {
+        e.stopPropagation();
+        handleResizeStart(e);
+      }} />
     </div>
   );
 }

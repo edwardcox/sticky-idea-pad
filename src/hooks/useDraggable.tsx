@@ -16,15 +16,17 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
   const [isDragging, setIsDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
-  // Update position when initialPosition prop changes and not dragging
+  // Update internal position when initialPosition changes and not dragging
   useEffect(() => {
-    if (!isDragging && initialPosition) {
+    if (!isDragging) {
       setPosition(initialPosition);
     }
   }, [initialPosition, isDragging]);
 
-  // Handle mouse and touch events
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     const clientX = e.clientX;
     const clientY = e.clientY;
     
@@ -34,37 +36,11 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     });
     
     setIsDragging(true);
-    
-    // Use document-level event listeners for better tracking outside the element
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      const x = Math.max(0, moveEvent.clientX - offset.x);
-      const y = Math.max(0, moveEvent.clientY - offset.y);
-      setPosition({ x, y });
-    };
-    
-    const handleMouseUp = () => {
-      setIsDragging(false);
-      
-      // IMPORTANT: Save the final position when drag ends
-      const finalPosition = {
-        x: Math.max(0, position.x),
-        y: Math.max(0, position.y)
-      };
-      
-      if (onPositionChange) {
-        onPositionChange(finalPosition);
-      }
-      
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-    
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  }, [position, offset, onPositionChange]);
+  }, [position]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length !== 1) return;
+    e.stopPropagation();
     
     const touch = e.touches[0];
     const clientX = touch.clientX;
@@ -76,52 +52,53 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     });
     
     setIsDragging(true);
-    
-    // Use document-level event listeners for better tracking outside the element
-    const handleTouchMove = (moveEvent: TouchEvent) => {
-      if (moveEvent.touches.length !== 1) return;
-      
-      moveEvent.preventDefault(); // Prevent scrolling while dragging
-      
-      const touch = moveEvent.touches[0];
-      const x = Math.max(0, touch.clientX - offset.x);
-      const y = Math.max(0, touch.clientY - offset.y);
-      setPosition({ x, y });
+  }, [position]);
+
+  // Set up document-level event handlers when dragging starts
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newX = Math.max(0, e.clientX - offset.x);
+      const newY = Math.max(0, e.clientY - offset.y);
+      setPosition({ x: newX, y: newY });
     };
-    
-    const handleTouchEnd = () => {
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      e.preventDefault();
+      
+      const touch = e.touches[0];
+      const newX = Math.max(0, touch.clientX - offset.x);
+      const newY = Math.max(0, touch.clientY - offset.y);
+      setPosition({ x: newX, y: newY });
+    };
+
+    const handleDragEnd = () => {
       setIsDragging(false);
       
-      // IMPORTANT: Save the final position when drag ends
-      const finalPosition = {
-        x: Math.max(0, position.x),
-        y: Math.max(0, position.y)
-      };
-      
+      // Important: Call the callback with the CURRENT position
       if (onPositionChange) {
-        onPositionChange(finalPosition);
+        onPositionChange(position);
       }
-      
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
-      document.removeEventListener('touchcancel', handleTouchEnd);
     };
-    
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('touchend', handleTouchEnd);
-    document.addEventListener('touchcancel', handleTouchEnd);
-  }, [position, offset, onPositionChange]);
 
-  // Clean up event listeners when component unmounts
-  useEffect(() => {
+    // Add event listeners
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleDragEnd);
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleDragEnd);
+    document.addEventListener('touchcancel', handleDragEnd);
+
+    // Clean up
     return () => {
-      document.removeEventListener('mousemove', () => {});
-      document.removeEventListener('mouseup', () => {});
-      document.removeEventListener('touchmove', () => {});
-      document.removeEventListener('touchend', () => {});
-      document.removeEventListener('touchcancel', () => {});
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleDragEnd);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleDragEnd);
+      document.removeEventListener('touchcancel', handleDragEnd);
     };
-  }, []);
+  }, [isDragging, offset, position, onPositionChange]);
 
   return {
     position,
