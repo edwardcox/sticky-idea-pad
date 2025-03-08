@@ -62,8 +62,14 @@ const Index = () => {
       <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 relative">
         <div 
           ref={notesContainerRef} 
-          className="notes-workspace relative min-h-[calc(100vh-300px)]"
-          style={{ position: 'relative', width: '100%', height: '100%', minHeight: '500px' }}
+          className="notes-workspace relative"
+          style={{ 
+            position: 'relative', 
+            width: '100%', 
+            minHeight: 'calc(100vh - 180px)',
+            height: '100%',
+            overflow: 'visible'
+          }}
         >
           {notes.length === 0 && !isAddingNote ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">

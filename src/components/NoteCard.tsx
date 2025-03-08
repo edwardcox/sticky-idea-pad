@@ -30,12 +30,16 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
   const rotationClasses = ['note-rotate-1', 'note-rotate-2', 'note-rotate-3', 'note-rotate-4', ''];
   const rotationClass = rotationClasses[note.id.charCodeAt(0) % rotationClasses.length];
   
+  // Validate and fix position if needed
+  const ensureValidPosition = (pos: any) => {
+    if (!pos || typeof pos.x !== 'number' || typeof pos.y !== 'number') {
+      return { x: 100 + (index * 30), y: 100 + (index * 30) };
+    }
+    return pos;
+  };
+  
   // Ensure note has a valid position
-  const initialPosition = note.position && 
-    typeof note.position.x === 'number' && 
-    typeof note.position.y === 'number' 
-      ? note.position 
-      : { x: 100 + (index * 30), y: 100 + (index * 30) };
+  const initialPosition = ensureValidPosition(note.position);
   
   // Set up draggable functionality
   const { position, isDragging, handleMouseDown, handleTouchStart } = useDraggable({
@@ -96,7 +100,8 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
         animationDelay: `${(index % 5) * 0.1}s`,
         transition: isDragging || isResizing ? 'none' : 'box-shadow 0.2s ease, transform 0.2s ease',
         cursor: isDragging ? 'grabbing' : 'grab',
-        userSelect: isDragging ? 'none' : 'auto'
+        userSelect: isDragging ? 'none' : 'auto',
+        touchAction: 'none' // Prevent default touch actions
       }}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}

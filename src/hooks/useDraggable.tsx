@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface Position {
   x: number;
@@ -15,6 +15,25 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
   const [position, setPosition] = useState<Position>(initialPosition);
   const [isDragging, setIsDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const boundaryRef = useRef({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1000,
+    height: typeof window !== 'undefined' ? window.innerHeight * 2 : 2000
+  });
+
+  // Update window dimensions on resize
+  useEffect(() => {
+    const updateBoundary = () => {
+      boundaryRef.current = {
+        width: window.innerWidth,
+        height: Math.max(window.innerHeight * 2, 2000) // Make sure we have a large vertical space
+      };
+      console.log("Boundary updated:", boundaryRef.current);
+    };
+
+    updateBoundary();
+    window.addEventListener('resize', updateBoundary);
+    return () => window.removeEventListener('resize', updateBoundary);
+  }, []);
 
   // Debug logging
   useEffect(() => {
@@ -71,8 +90,11 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
 
     const handleMouseMove = (e: MouseEvent) => {
       e.preventDefault();
-      const newX = Math.max(0, e.clientX - offset.x);
-      const newY = Math.max(0, e.clientY - offset.y);
+      
+      // Calculate new position with boundary limits
+      const newX = Math.max(0, Math.min(e.clientX - offset.x, boundaryRef.current.width - 100));
+      const newY = Math.max(0, Math.min(e.clientY - offset.y, boundaryRef.current.height - 100));
+      
       setPosition({ x: newX, y: newY });
     };
 
@@ -83,8 +105,11 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
       e.preventDefault();
       
       const touch = e.touches[0];
-      const newX = Math.max(0, touch.clientX - offset.x);
-      const newY = Math.max(0, touch.clientY - offset.y);
+      
+      // Calculate new position with boundary limits
+      const newX = Math.max(0, Math.min(touch.clientX - offset.x, boundaryRef.current.width - 100));
+      const newY = Math.max(0, Math.min(touch.clientY - offset.y, boundaryRef.current.height - 100));
+      
       setPosition({ x: newX, y: newY });
     };
 

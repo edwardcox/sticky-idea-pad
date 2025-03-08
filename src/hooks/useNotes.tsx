@@ -23,6 +23,17 @@ const deserializeNote = (note: any): Note => {
   };
 };
 
+// Function to generate a random position within the viewport
+const generateRandomPosition = () => {
+  const maxX = typeof window !== 'undefined' ? Math.max(window.innerWidth - 350, 400) : 500;
+  const maxY = typeof window !== 'undefined' ? Math.max(window.innerHeight - 350, 400) : 500;
+  
+  return {
+    x: Math.floor(Math.random() * maxX) + 50,
+    y: Math.floor(Math.random() * maxY) + 50
+  };
+};
+
 export function useNotes() {
   const [notes, setNotes] = useState<Note[]>(() => {
     try {
@@ -79,13 +90,19 @@ export function useNotes() {
   }, [notes]);
 
   const addNote = useCallback((note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => {
+    // Ensure note has a valid position or generate a random one
+    const position = note.position && 
+      typeof note.position.x === 'number' && 
+      typeof note.position.y === 'number' 
+        ? note.position 
+        : generateRandomPosition();
+    
     const newNote: Note = {
       ...note,
       id: crypto.randomUUID(),
       createdAt: new Date(),
       updatedAt: new Date(),
-      // Ensure new note has a valid position
-      position: note.position || { x: 100, y: 100 },
+      position: position,
       width: note.width || 280
     };
     
@@ -100,7 +117,16 @@ export function useNotes() {
     setNotes(prev => 
       prev.map(note => 
         note.id === id 
-          ? { ...note, ...updates, updatedAt: new Date() } 
+          ? { 
+              ...note, 
+              ...updates, 
+              updatedAt: new Date(),
+              // Ensure position remains valid if it's being updated
+              position: updates.position ? {
+                x: Number(updates.position.x) || 0,
+                y: Number(updates.position.y) || 0
+              } : note.position
+            } 
           : note
       )
     );
