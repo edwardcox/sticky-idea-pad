@@ -1,3 +1,4 @@
+
 export type Priority = 'urgent' | 'action' | 'normal';
 
 export interface Note {
@@ -17,8 +18,8 @@ export interface Note {
 export const defaultNotes: Note[] = [
   {
     id: '1',
-    title: 'Welcome to Sticky Notes',
-    content: 'This is your new notes app! Click the + button to add a new note.',
+    title: 'Welcome to Sticky Ideas',
+    content: 'This is your new ideas app! Click the + button to add a new idea.',
     color: 'yellow',
     priority: 'normal',
     createdAt: new Date(),
@@ -26,7 +27,7 @@ export const defaultNotes: Note[] = [
   },
   {
     id: '2',
-    title: 'Format Your Notes',
+    title: 'Format Your Ideas',
     content: 'You can make text **bold**, *italic*, or __underlined__. Try the formatting options!',
     color: 'blue',
     priority: 'action',
@@ -36,7 +37,7 @@ export const defaultNotes: Note[] = [
   {
     id: '3',
     title: 'Set Priority Levels',
-    content: 'Notes can be set to Urgent, Action Required, or Normal priority. Click the priority icon to change it.',
+    content: 'Ideas can be set to Urgent, Action Required, or Normal priority. Click the priority icon to change it.',
     color: 'pink',
     priority: 'urgent',
     createdAt: new Date(),

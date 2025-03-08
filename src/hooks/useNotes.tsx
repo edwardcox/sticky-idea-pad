@@ -3,16 +3,47 @@ import { useState, useCallback, useEffect } from 'react';
 import { Note, defaultNotes } from '@/lib/data';
 import { toast } from 'sonner';
 
+// Storage key constant
+const STORAGE_KEY = 'sticky-ideas';
+
+// Helper to safely parse dates when loading from storage
+const deserializeNote = (note: any): Note => {
+  return {
+    ...note,
+    createdAt: new Date(note.createdAt),
+    updatedAt: new Date(note.updatedAt)
+  };
+};
+
 export function useNotes() {
   const [notes, setNotes] = useState<Note[]>(() => {
-    // Load notes from localStorage or use defaults
-    const savedNotes = localStorage.getItem('sticky-notes');
-    return savedNotes ? JSON.parse(savedNotes) : defaultNotes;
+    try {
+      // Load notes from localStorage or use defaults
+      const savedNotes = localStorage.getItem(STORAGE_KEY);
+      
+      if (savedNotes) {
+        // Parse the JSON and ensure dates are properly deserialized
+        const parsedNotes = JSON.parse(savedNotes);
+        return Array.isArray(parsedNotes) 
+          ? parsedNotes.map(deserializeNote)
+          : defaultNotes;
+      }
+      
+      return defaultNotes;
+    } catch (error) {
+      console.error('Failed to load notes from localStorage:', error);
+      return defaultNotes;
+    }
   });
 
   // Save notes to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('sticky-notes', JSON.stringify(notes));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
+    } catch (error) {
+      console.error('Failed to save notes to localStorage:', error);
+      toast.error('Failed to save your notes. You may be in private browsing mode.');
+    }
   }, [notes]);
 
   const addNote = useCallback((note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => {
