@@ -24,6 +24,7 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
   // Update internal position when initialPosition changes and not dragging
   useEffect(() => {
     if (!isDragging) {
+      console.log("Setting position from initialPosition:", initialPosition);
       setPosition(initialPosition);
     }
   }, [initialPosition, isDragging]);
@@ -41,11 +42,14 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     });
     
     setIsDragging(true);
-    console.log("Mouse down - dragging started");
+    console.log("Mouse down - dragging started at", position);
   }, [position]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length !== 1) return;
+    
+    // Important: prevent default to avoid scrolling
+    e.preventDefault();
     e.stopPropagation();
     
     const touch = e.touches[0];
@@ -58,7 +62,7 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     });
     
     setIsDragging(true);
-    console.log("Touch start - dragging started");
+    console.log("Touch start - dragging started at", position);
   }, [position]);
 
   // Set up document-level event handlers when dragging starts
@@ -66,6 +70,7 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     if (!isDragging) return;
 
     const handleMouseMove = (e: MouseEvent) => {
+      e.preventDefault();
       const newX = Math.max(0, e.clientX - offset.x);
       const newY = Math.max(0, e.clientY - offset.y);
       setPosition({ x: newX, y: newY });
@@ -74,7 +79,7 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     const handleTouchMove = (e: TouchEvent) => {
       if (e.touches.length !== 1) return;
       
-      // Explicitly prevent default behavior
+      // Explicitly prevent default behavior to avoid scrolling
       e.preventDefault();
       
       const touch = e.touches[0];
@@ -85,16 +90,16 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
 
     const handleDragEnd = () => {
       setIsDragging(false);
-      console.log("Drag ended - updating position");
       
-      // Call the callback with the CURRENT position
+      // Call the callback with the current position
       if (onPositionChange) {
+        console.log("Drag ended - updating position to", position);
         onPositionChange(position);
       }
     };
 
     // Add event listeners
-    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mousemove', handleMouseMove, { passive: false });
     document.addEventListener('mouseup', handleDragEnd);
     document.addEventListener('touchmove', handleTouchMove, { passive: false });
     document.addEventListener('touchend', handleDragEnd);

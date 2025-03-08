@@ -14,11 +14,11 @@ const deserializeNote = (note: any): Note => {
     updatedAt: new Date(note.updatedAt),
     // Ensure position is properly restored if it exists
     position: note.position ? {
-      x: Number(note.position.x),
-      y: Number(note.position.y)
-    } : undefined,
+      x: Number(note.position.x) || 0,
+      y: Number(note.position.y) || 0
+    } : { x: 100, y: 100 }, // Always provide a default position
     // Ensure width/height are properly restored
-    width: note.width ? Number(note.width) : undefined,
+    width: note.width ? Number(note.width) : 280, // Default width
     height: note.height ? Number(note.height) : undefined
   };
 };
@@ -34,12 +34,13 @@ export function useNotes() {
         // Parse the JSON and ensure dates are properly deserialized
         const parsedNotes = JSON.parse(savedNotes);
         console.log("Parsed notes:", parsedNotes);
-        return Array.isArray(parsedNotes) 
-          ? parsedNotes.map(deserializeNote)
-          : defaultNotes;
+        
+        if (Array.isArray(parsedNotes) && parsedNotes.length > 0) {
+          return parsedNotes.map(deserializeNote);
+        }
       }
       
-      console.log("No saved notes found, using default notes");
+      console.log("No saved notes found or invalid format, using default notes");
       // Add default positions to default notes if they don't exist
       return defaultNotes.map((note, index) => ({
         ...note,
@@ -50,13 +51,25 @@ export function useNotes() {
       }));
     } catch (error) {
       console.error('Failed to load notes from localStorage:', error);
-      return defaultNotes;
+      toast.error('Failed to load your notes. Using defaults instead.');
+      return defaultNotes.map((note, index) => ({
+        ...note,
+        position: {
+          x: 100 + (index * 50),
+          y: 100 + (index * 30)
+        }
+      }));
     }
   });
 
   // Save notes to localStorage whenever they change
   useEffect(() => {
     try {
+      if (notes.length === 0) {
+        console.warn("No notes to save, skipping localStorage update");
+        return;
+      }
+      
       localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
       console.log("Saved notes to localStorage:", notes);
     } catch (error) {
@@ -71,6 +84,9 @@ export function useNotes() {
       id: crypto.randomUUID(),
       createdAt: new Date(),
       updatedAt: new Date(),
+      // Ensure new note has a valid position
+      position: note.position || { x: 100, y: 100 },
+      width: note.width || 280
     };
     
     setNotes(prev => [newNote, ...prev]);

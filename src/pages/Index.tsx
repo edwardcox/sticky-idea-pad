@@ -38,7 +38,11 @@ const Index = () => {
 
   // Debug log to verify notes are being loaded
   useEffect(() => {
-    console.log("Notes loaded:", notes);
+    console.log("Notes loaded in Index:", notes);
+    console.log("Number of notes:", notes.length);
+    notes.forEach((note, i) => {
+      console.log(`Note ${i}: id=${note.id}, title=${note.title}, position=${note.position?.x},${note.position?.y}`);
+    });
   }, [notes]);
 
   return (
@@ -55,11 +59,11 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+      <main className="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 relative">
         <div 
           ref={notesContainerRef} 
           className="notes-workspace relative min-h-[calc(100vh-300px)]"
-          style={{ position: 'relative' }}
+          style={{ position: 'relative', width: '100%', height: '100%', minHeight: '500px' }}
         >
           {notes.length === 0 && !isAddingNote ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -78,15 +82,17 @@ const Index = () => {
               </button>
             </div>
           ) : (
-            notes.map((note, index) => (
-              <NoteCard
-                key={note.id}
-                note={note}
-                onUpdate={updateNote}
-                onDelete={deleteNote}
-                index={index}
-              />
-            ))
+            <>
+              {notes.map((note, index) => (
+                <NoteCard
+                  key={note.id}
+                  note={note}
+                  onUpdate={updateNote}
+                  onDelete={deleteNote}
+                  index={index}
+                />
+              ))}
+            </>
           )}
         </div>
 
@@ -100,7 +106,7 @@ const Index = () => {
         )}
       </main>
 
-      <footer className="bg-white border-t py-4 text-center text-sm text-gray-500 mt-auto">
+      <footer className="bg-white border-t py-4 text-center text-sm text-gray-500 mt-auto w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p>©2025 Edward Cox • Version 1.0</p>
         </div>

@@ -24,17 +24,25 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
   
   // Debug log when note renders
   useEffect(() => {
-    console.log("NoteCard rendering:", note.id, note.title, note.position);
+    console.log(`NoteCard rendering: ${note.id}, ${note.title}, position:`, note.position);
   }, [note]);
   
   const rotationClasses = ['note-rotate-1', 'note-rotate-2', 'note-rotate-3', 'note-rotate-4', ''];
   const rotationClass = rotationClasses[note.id.charCodeAt(0) % rotationClasses.length];
   
+  // Ensure note has a valid position
+  const initialPosition = note.position && 
+    typeof note.position.x === 'number' && 
+    typeof note.position.y === 'number' 
+      ? note.position 
+      : { x: 100 + (index * 30), y: 100 + (index * 30) };
+  
   // Set up draggable functionality
   const { position, isDragging, handleMouseDown, handleTouchStart } = useDraggable({
-    initialPosition: note.position || { x: 0, y: 0 },
+    initialPosition,
     onPositionChange: (newPosition) => {
       // Update the note position in the parent component
+      console.log(`Updating note ${note.id} position to:`, newPosition);
       onUpdate(note.id, { position: newPosition });
     }
   });
