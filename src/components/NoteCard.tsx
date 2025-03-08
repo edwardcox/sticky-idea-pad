@@ -53,7 +53,6 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
   useEffect(() => {
     if (note.position && (position.x !== note.position.x || position.y !== note.position.y)) {
       // This ensures positions are synchronized when they come from localStorage
-      // This won't create an infinite loop because useDraggable uses state internally
     }
   }, [note.position]);
 
@@ -62,6 +61,28 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
     const currentIndex = priorities.indexOf(note.priority);
     const nextIndex = (currentIndex + 1) % priorities.length;
     onUpdate(note.id, { priority: priorities[nextIndex] });
+  };
+
+  const handleCardInteraction = (e: React.MouseEvent | React.TouchEvent) => {
+    // Don't initiate drag when clicking on interactive elements
+    const target = e.target as HTMLElement;
+    if (
+      target.closest('button') || 
+      target.closest('input') || 
+      target.closest('textarea') ||
+      target.closest('.resize-handle')
+    ) {
+      return;
+    }
+    
+    // Prevent text selection during drag
+    e.preventDefault();
+    
+    if ('touches' in e) {
+      handleTouchStart(e);
+    } else {
+      handleMouseDown(e);
+    }
   };
 
   if (isEditing) {
@@ -81,7 +102,7 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
   return (
     <div 
       ref={noteRef}
-      className={`note-card bg-note-${note.color} p-4 animate-float-in ${rotationClass} ${isDragging ? 'dragging cursor-grabbing' : ''} select-none`}
+      className={`note-card bg-note-${note.color} p-4 animate-float-in ${rotationClass} ${isDragging ? 'dragging cursor-grabbing' : ''}`}
       style={{
         position: 'absolute',
         left: `${position.x}px`,
@@ -91,12 +112,10 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
         zIndex: isDragging ? 100 : 10 + index,
         animationDelay: `${(parseInt(note.id) % 5) * 0.1}s`,
         transition: isDragging || isResizing ? 'none' : 'box-shadow 0.2s ease, transform 0.2s ease',
-        cursor: isDragging ? 'grabbing' : 'grab',
-        userSelect: 'none',
-        touchAction: 'none'
+        cursor: isDragging ? 'grabbing' : 'grab'
       }}
-      onMouseDown={handleMouseDown}
-      onTouchStart={handleTouchStart}
+      onMouseDown={handleCardInteraction}
+      onTouchStart={handleCardInteraction}
     >
       <div className="flex flex-col h-full">
         <div className="mb-1 flex justify-between items-start">
