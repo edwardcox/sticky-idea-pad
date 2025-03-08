@@ -42,7 +42,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <StickyNote className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">Sticky Notes</h1>
+            <h1 className="text-xl font-bold">Sticky Ideas</h1>
           </div>
           <div className="text-sm text-muted-foreground">
             {notes.length} {notes.length === 1 ? 'note' : 'notes'}
@@ -60,15 +60,15 @@ const Index = () => {
               <div className="bg-primary/5 p-12 rounded-full mb-6 animate-pulse-subtle">
                 <StickyNote className="h-16 w-16 text-primary/70" />
               </div>
-              <h2 className="text-2xl font-bold mb-2">No notes yet</h2>
+              <h2 className="text-2xl font-bold mb-2">No ideas yet</h2>
               <p className="text-muted-foreground mb-6 max-w-md">
-                Create your first note by clicking the + button in the bottom right corner.
+                Create your first idea by clicking the + button in the bottom right corner.
               </p>
               <button
                 onClick={() => setIsAddingNote(true)}
                 className="button-press text-primary underline font-medium"
               >
-                Create my first note
+                Create my first idea
               </button>
             </div>
           ) : (
