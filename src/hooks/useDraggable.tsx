@@ -27,7 +27,7 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
       setPosition(initialPosition);
     }
   }, [initialPosition, isDragging]);
-  
+
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     // Prevent default to stop text selection during drag
     e.preventDefault();
@@ -36,25 +36,22 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     if ((e.target as HTMLElement).closest('button') || 
         (e.target as HTMLElement).closest('input') ||
         (e.target as HTMLElement).closest('textarea') ||
-        (e.target as HTMLElement).closest('.resize-handle') ||
-        (e.target as any).contentEditable === 'true') {
+        (e.target as HTMLElement).closest('.resize-handle')) {
       return;
     }
     
     setIsDragging(true);
     setStartPos({ x: e.clientX - position.x, y: e.clientY - position.y });
     
-    // Add event listeners to window to handle dragging
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    // Add global event listeners
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
   }, [position]);
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isDragging) return;
     
-    // Prevent default browser behavior during drag
-    e.preventDefault();
-    
+    // Calculate new position
     const newPosition = {
       x: Math.max(0, e.clientX - startPos.x),
       y: Math.max(0, e.clientY - startPos.y)
@@ -63,12 +60,8 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     setPosition(newPosition);
   }, [isDragging, startPos]);
 
-  const handleMouseUp = useCallback((e: MouseEvent) => {
+  const handleMouseUp = useCallback(() => {
     if (isDragging) {
-      // Prevent any default browser behavior
-      e.preventDefault();
-      e.stopPropagation();
-      
       setIsDragging(false);
       
       // Notify about position change if callback provided
@@ -76,28 +69,27 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
         onPositionChange(positionRef.current);
       }
       
-      // Remove event listeners - use document instead of window for better reliability
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      // Remove event listeners
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
     }
   }, [isDragging, onPositionChange, handleMouseMove]);
 
   // Clean up event listeners when component unmounts
   useEffect(() => {
     return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
     };
   }, [handleMouseMove, handleMouseUp]);
 
   // Handle touch events for mobile
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    // Ignore if touching on buttons or form elements
+    // Ignore if touching buttons or interactive elements
     if ((e.target as HTMLElement).closest('button') || 
         (e.target as HTMLElement).closest('input') ||
         (e.target as HTMLElement).closest('textarea') ||
-        (e.target as HTMLElement).closest('.resize-handle') ||
-        (e.target as any).contentEditable === 'true') {
+        (e.target as HTMLElement).closest('.resize-handle')) {
       return;
     }
     
@@ -105,9 +97,10 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     setIsDragging(true);
     setStartPos({ x: touch.clientX - position.x, y: touch.clientY - position.y });
     
-    // Add event listeners to document for better reliability
-    document.addEventListener('touchmove', handleTouchMove, { passive: false });
-    document.addEventListener('touchend', handleTouchEnd);
+    // Add global event listeners for touch events
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd);
+    window.addEventListener('touchcancel', handleTouchEnd);
   }, [position]);
 
   const handleTouchMove = useCallback((e: TouchEvent) => {
@@ -125,7 +118,7 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
     setPosition(newPosition);
   }, [isDragging, startPos]);
 
-  const handleTouchEnd = useCallback((e: TouchEvent) => {
+  const handleTouchEnd = useCallback(() => {
     if (isDragging) {
       setIsDragging(false);
       
@@ -134,17 +127,19 @@ export function useDraggable({ initialPosition, onPositionChange }: UseDraggable
         onPositionChange(positionRef.current);
       }
       
-      // Remove event listeners
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
+      // Remove touch event listeners
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchEnd);
     }
   }, [isDragging, onPositionChange, handleTouchMove]);
 
   // Clean up touch event listeners when component unmounts
   useEffect(() => {
     return () => {
-      document.removeEventListener('touchmove', handleTouchMove);
-      document.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchEnd);
     };
   }, [handleTouchMove, handleTouchEnd]);
 

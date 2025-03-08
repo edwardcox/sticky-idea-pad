@@ -81,7 +81,7 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
   return (
     <div 
       ref={noteRef}
-      className={`note-card bg-note-${note.color} p-4 animate-float-in ${rotationClass} ${isDragging ? 'dragging cursor-grabbing' : 'cursor-grab'}`}
+      className={`note-card bg-note-${note.color} p-4 animate-float-in ${rotationClass} ${isDragging ? 'dragging cursor-grabbing' : ''} select-none`}
       style={{
         position: 'absolute',
         left: `${position.x}px`,
@@ -90,7 +90,10 @@ export function NoteCard({ note, onUpdate, onDelete, index }: NoteCardProps) {
         height: size.height === 'auto' ? 'auto' : `${size.height}px`,
         zIndex: isDragging ? 100 : 10 + index,
         animationDelay: `${(parseInt(note.id) % 5) * 0.1}s`,
-        transition: isDragging || isResizing ? 'none' : 'box-shadow 0.2s ease, transform 0.2s ease'
+        transition: isDragging || isResizing ? 'none' : 'box-shadow 0.2s ease, transform 0.2s ease',
+        cursor: isDragging ? 'grabbing' : 'grab',
+        userSelect: 'none',
+        touchAction: 'none'
       }}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
