@@ -1,10 +1,14 @@
 
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { BrowserRouter } from 'react-router-dom'
+import App from './App'
 import './index.css'
 
-// Log some debugging information
-console.log("Environment:", import.meta.env);
-console.log("BASE_URL:", import.meta.env.BASE_URL);
-
-createRoot(document.getElementById("root")!).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <BrowserRouter basename="/sticky-ideas">
+      <App />
+    </BrowserRouter>
+  </React.StrictMode>,
+)

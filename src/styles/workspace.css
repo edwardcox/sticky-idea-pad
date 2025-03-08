@@ -1,0 +1,44 @@
+
+@layer components {
+  .workspace-scroll {
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+  }
+
+  .workspace-scroll::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .workspace-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .workspace-scroll::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 20px;
+  }
+
+  .notes-workspace {
+    position: relative;
+    overflow: visible;
+    width: 200%;
+    min-height: 400vh;
+  }
+
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: var(--radius);
+  }
+}
+
+@media (max-width: 768px) {
+  .notes-workspace {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
