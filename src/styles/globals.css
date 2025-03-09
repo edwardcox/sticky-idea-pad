@@ -1,5 +1,10 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&display=swap');
+/* Import other stylesheets first */
+@import './workspace.css';
+@import './notes.css';
+@import './animations.css';
+@import './buttons.css';
 
 @tailwind base;
 @tailwind components;
@@ -65,9 +70,3 @@
     cursor: grabbing !important;
   }
 }
-
-/* Import other stylesheets */
-@import './workspace.css';
-@import './notes.css';
-@import './animations.css';
-@import './buttons.css';
