@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { NoteCard } from '@/components/NoteCard';
 import { AddNoteButton } from '@/components/AddNoteButton';
@@ -121,7 +122,7 @@ const Index = () => {
         boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.05)'
       }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p>©2025 Edward Cox • Version 1.0.1</p>
+          <p>©2025 Edward Cox • Version 1.0.2</p>
         </div>
       </footer>
 
