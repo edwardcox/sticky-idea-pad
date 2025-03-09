@@ -35,16 +35,31 @@ export function useNotes() {
         console.log("Loading notes from IndexedDB:", savedNotes);
         
         if (savedNotes && savedNotes.length > 0) {
-          setNotes(savedNotes);
+          // Ensure all notes have valid positions
+          const notesWithValidPositions = savedNotes.map(note => ({
+            ...note,
+            position: note.position && typeof note.position.x === 'number' && typeof note.position.y === 'number'
+              ? note.position
+              : generateRandomPosition(),
+            width: note.width || 280
+          }));
+          setNotes(notesWithValidPositions);
+          
+          // If positions were fixed, update in DB
+          if (JSON.stringify(notesWithValidPositions) !== JSON.stringify(savedNotes)) {
+            console.log("Updating notes with valid positions");
+            await saveAllNotes(notesWithValidPositions);
+          }
         } else {
           console.log("No saved notes found, using default notes");
           // Add default positions to default notes if they don't exist
           const notesWithPositions = defaultNotes.map((note, index) => ({
             ...note,
-            position: note.position || {
-              x: 100 + (index * 150),
-              y: 100 + (index * 100)
-            }
+            position: {
+              x: 100 + (index * 50),
+              y: 100 + (index * 150)
+            },
+            width: note.width || 280
           }));
           setNotes(notesWithPositions);
           // Save default notes to IndexedDB
@@ -58,9 +73,10 @@ export function useNotes() {
         const notesWithPositions = defaultNotes.map((note, index) => ({
           ...note,
           position: {
-            x: 100 + (index * 150),
-            y: 100 + (index * 100)
-          }
+            x: 100 + (index * 50),
+            y: 100 + (index * 150)
+          },
+          width: note.width || 280
         }));
         setNotes(notesWithPositions);
       } finally {
@@ -80,8 +96,16 @@ export function useNotes() {
           return;
         }
         
-        await saveAllNotes(notes);
-        console.log("Saved notes to IndexedDB:", notes);
+        // Ensure all notes have valid positions before saving
+        const notesToSave = notes.map(note => ({
+          ...note,
+          position: note.position && typeof note.position.x === 'number' && typeof note.position.y === 'number'
+            ? note.position
+            : generateRandomPosition()
+        }));
+        
+        await saveAllNotes(notesToSave);
+        console.log("Saved notes to IndexedDB:", notesToSave);
       } catch (error) {
         console.error('Failed to save notes to IndexedDB:', error);
         toast.error('Failed to save your notes.');

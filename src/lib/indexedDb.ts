@@ -30,6 +30,46 @@ export const initDB = (): Promise<IDBDatabase> => {
   });
 };
 
+// Helper to ensure dates are properly converted
+const serializeNote = (note: Note) => {
+  // Deep clone to prevent mutation of the original object
+  const serialized = JSON.parse(JSON.stringify(note));
+  
+  // Ensure dates are serializable
+  serialized.createdAt = note.createdAt.toISOString();
+  serialized.updatedAt = note.updatedAt.toISOString();
+  
+  // Ensure position is properly serialized
+  if (note.position) {
+    serialized.position = {
+      x: Number(note.position.x),
+      y: Number(note.position.y)
+    };
+  }
+  
+  return serialized;
+};
+
+// Helper to deserialize note from DB format
+const deserializeNote = (dbNote: any): Note => {
+  // Convert date strings back to Date objects
+  const note = {
+    ...dbNote,
+    createdAt: new Date(dbNote.createdAt),
+    updatedAt: new Date(dbNote.updatedAt)
+  };
+  
+  // Ensure position is a valid object with numeric values
+  if (dbNote.position) {
+    note.position = {
+      x: Number(dbNote.position.x),
+      y: Number(dbNote.position.y)
+    };
+  }
+  
+  return note;
+};
+
 // Get all notes from the database
 export const getAllNotes = async (): Promise<Note[]> => {
   try {
@@ -40,11 +80,7 @@ export const getAllNotes = async (): Promise<Note[]> => {
       const request = store.getAll();
 
       request.onsuccess = () => {
-        const notes = request.result.map(note => ({
-          ...note,
-          createdAt: new Date(note.createdAt),
-          updatedAt: new Date(note.updatedAt)
-        }));
+        const notes = request.result.map(deserializeNote);
         resolve(notes);
       };
 
@@ -75,12 +111,8 @@ export const saveAllNotes = async (notes: Note[]): Promise<void> => {
 
     // Add each note
     for (const note of notes) {
-      store.add({
-        ...note,
-        // Ensure dates are serializable
-        createdAt: note.createdAt.toISOString(),
-        updatedAt: note.updatedAt.toISOString()
-      });
+      const serializedNote = serializeNote(note);
+      store.add(serializedNote);
     }
 
     return new Promise((resolve, reject) => {
@@ -107,11 +139,8 @@ export const addNote = async (note: Note): Promise<void> => {
     const transaction = db.transaction(NOTES_STORE, 'readwrite');
     const store = transaction.objectStore(NOTES_STORE);
 
-    store.add({
-      ...note,
-      createdAt: note.createdAt.toISOString(),
-      updatedAt: note.updatedAt.toISOString()
-    });
+    const serializedNote = serializeNote(note);
+    store.add(serializedNote);
 
     return new Promise((resolve, reject) => {
       transaction.oncomplete = () => {
@@ -141,11 +170,19 @@ export const updateNote = async (id: string, updates: Partial<Note>): Promise<vo
     request.onsuccess = () => {
       const note = request.result;
       if (note) {
+        // Ensure position is properly updated if it exists
+        const updatedPosition = updates.position ? {
+          x: Number(updates.position.x),
+          y: Number(updates.position.y)
+        } : note.position;
+        
         const updatedNote = {
           ...note,
           ...updates,
+          position: updatedPosition,
           updatedAt: new Date().toISOString()
         };
+        
         store.put(updatedNote);
       }
     };
