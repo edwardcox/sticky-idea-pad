@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { NoteCard } from '@/components/NoteCard';
 import { AddNoteButton } from '@/components/AddNoteButton';
@@ -11,16 +10,13 @@ const Index = () => {
   const [isAddingNote, setIsAddingNote] = useState(false);
   const notesContainerRef = useRef<HTMLDivElement>(null);
   
-  // This ensures that new notes without a position are positioned in the visible area
   const handleAddNote = (newNote: any) => {
-    // Create initial position if the container is available
     let initialPosition = { x: 100, y: 100 };
     
     if (notesContainerRef.current) {
       const container = notesContainerRef.current;
       const rect = container.getBoundingClientRect();
       
-      // Set a random position within the visible area, with some padding
       initialPosition = {
         x: Math.floor(Math.random() * (rect.width - 300)) + 50,
         y: Math.floor(Math.random() * (Math.min(500, rect.height - 300))) + 100
@@ -36,7 +32,6 @@ const Index = () => {
     setIsAddingNote(false);
   };
 
-  // Debug log to verify notes are being loaded
   useEffect(() => {
     console.log("Notes loaded in Index:", notes);
     console.log("Number of notes:", notes.length);
@@ -65,8 +60,8 @@ const Index = () => {
           className="notes-workspace relative"
           style={{ 
             position: 'relative', 
-            width: '200%', // Double the width
-            minHeight: '400vh', // Quadruple the height
+            width: '200%', 
+            minHeight: '400vh', 
             height: '400vh',
             overflow: 'visible',
             border: '1px dashed rgba(0, 0, 0, 0.1)',
@@ -114,7 +109,7 @@ const Index = () => {
         )}
       </main>
 
-      <footer className="bg-white border-t py-4 text-center text-sm text-gray-500 fixed bottom-0 left-0 w-full z-10">
+      <footer className="app-footer bg-white border-t py-4 text-center text-sm text-gray-500">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p>©2025 Edward Cox • Version 1.0</p>
         </div>
