@@ -4,10 +4,10 @@ import { NoteCard } from '@/components/NoteCard';
 import { AddNoteButton } from '@/components/AddNoteButton';
 import { NoteForm } from '@/components/NoteForm';
 import { useNotes } from '@/hooks/useNotes';
-import { StickyNote } from 'lucide-react';
+import { StickyNote, Loader2 } from 'lucide-react';
 
 const Index = () => {
-  const { notes, addNote, updateNote, deleteNote } = useNotes();
+  const { notes, addNote, updateNote, deleteNote, isLoading } = useNotes();
   const [isAddingNote, setIsAddingNote] = useState(false);
   const notesContainerRef = useRef<HTMLDivElement>(null);
   
@@ -34,12 +34,14 @@ const Index = () => {
   };
 
   useEffect(() => {
-    console.log("Notes loaded in Index:", notes);
-    console.log("Number of notes:", notes.length);
-    notes.forEach((note, i) => {
-      console.log(`Note ${i}: id=${note.id}, title=${note.title}, position=${note.position?.x},${note.position?.y}`);
-    });
-  }, [notes]);
+    if (!isLoading) {
+      console.log("Notes loaded in Index:", notes);
+      console.log("Number of notes:", notes.length);
+      notes.forEach((note, i) => {
+        console.log(`Note ${i}: id=${note.id}, title=${note.title}, position=${note.position?.x},${note.position?.y}`);
+      });
+    }
+  }, [notes, isLoading]);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f9f9f9] relative">
@@ -56,49 +58,59 @@ const Index = () => {
       </header>
 
       <main className="flex-grow w-full px-4 sm:px-6 lg:px-8 py-8 relative overflow-auto workspace-scroll">
-        <div 
-          ref={notesContainerRef} 
-          className="notes-workspace relative"
-          style={{ 
-            position: 'relative', 
-            width: '200%', 
-            minHeight: '400vh', 
-            height: '400vh',
-            overflow: 'visible',
-            border: '1px dashed rgba(0, 0, 0, 0.1)',
-            margin: '0 auto'
-          }}
-        >
-          {notes.length === 0 && !isAddingNote ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="bg-primary/5 p-12 rounded-full mb-6 animate-pulse-subtle">
-                <StickyNote className="h-16 w-16 text-primary/70" />
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <Loader2 className="h-12 w-12 text-primary animate-spin mb-6" />
+            <h2 className="text-2xl font-bold mb-2">Loading your notes...</h2>
+            <p className="text-muted-foreground mb-6 max-w-md">
+              Please wait while we retrieve your sticky ideas.
+            </p>
+          </div>
+        ) : (
+          <div 
+            ref={notesContainerRef} 
+            className="notes-workspace relative"
+            style={{ 
+              position: 'relative', 
+              width: '200%', 
+              minHeight: '400vh', 
+              height: '400vh',
+              overflow: 'visible',
+              border: '1px dashed rgba(0, 0, 0, 0.1)',
+              margin: '0 auto'
+            }}
+          >
+            {notes.length === 0 && !isAddingNote ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <div className="bg-primary/5 p-12 rounded-full mb-6 animate-pulse-subtle">
+                  <StickyNote className="h-16 w-16 text-primary/70" />
+                </div>
+                <h2 className="text-2xl font-bold mb-2">No ideas yet</h2>
+                <p className="text-muted-foreground mb-6 max-w-md">
+                  Create your first idea by clicking the + button in the bottom right corner.
+                </p>
+                <button
+                  onClick={() => setIsAddingNote(true)}
+                  className="button-press text-primary underline font-medium"
+                >
+                  Create my first idea
+                </button>
               </div>
-              <h2 className="text-2xl font-bold mb-2">No ideas yet</h2>
-              <p className="text-muted-foreground mb-6 max-w-md">
-                Create your first idea by clicking the + button in the bottom right corner.
-              </p>
-              <button
-                onClick={() => setIsAddingNote(true)}
-                className="button-press text-primary underline font-medium"
-              >
-                Create my first idea
-              </button>
-            </div>
-          ) : (
-            <>
-              {notes.map((note, index) => (
-                <NoteCard
-                  key={note.id}
-                  note={note}
-                  onUpdate={updateNote}
-                  onDelete={deleteNote}
-                  index={index}
-                />
-              ))}
-            </>
-          )}
-        </div>
+            ) : (
+              <>
+                {notes.map((note, index) => (
+                  <NoteCard
+                    key={note.id}
+                    note={note}
+                    onUpdate={updateNote}
+                    onDelete={deleteNote}
+                    index={index}
+                  />
+                ))}
+              </>
+            )}
+          </div>
+        )}
 
         {isAddingNote && (
           <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30 flex items-center justify-center p-4">

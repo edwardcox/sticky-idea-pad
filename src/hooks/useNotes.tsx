@@ -2,28 +2,15 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Note, defaultNotes } from '@/lib/data';
 import { toast } from 'sonner';
+import { 
+  getAllNotes, 
+  saveAllNotes, 
+  addNote as addNoteToDb, 
+  updateNote as updateNoteInDb, 
+  deleteNote as deleteNoteFromDb 
+} from '@/lib/indexedDb';
 
-// Storage key constant
-const STORAGE_KEY = 'sticky-ideas';
-
-// Helper to safely parse dates when loading from storage
-const deserializeNote = (note: any): Note => {
-  return {
-    ...note,
-    createdAt: new Date(note.createdAt),
-    updatedAt: new Date(note.updatedAt),
-    // Ensure position is properly restored if it exists
-    position: note.position ? {
-      x: Number(note.position.x) || 0,
-      y: Number(note.position.y) || 0
-    } : { x: 100, y: 100 }, // Always provide a default position
-    // Ensure width/height are properly restored
-    width: note.width ? Number(note.width) : 280, // Default width
-    height: note.height ? Number(note.height) : undefined
-  };
-};
-
-// Function to generate a random position within the expanded viewport
+// Helper to generate a random position within the expanded viewport
 const generateRandomPosition = () => {
   // Get window dimensions with multipliers to create a larger workspace
   const maxX = typeof window !== 'undefined' ? Math.max(window.innerWidth * 1.8, 1800) : 1800;
@@ -36,61 +23,75 @@ const generateRandomPosition = () => {
 };
 
 export function useNotes() {
-  const [notes, setNotes] = useState<Note[]>(() => {
-    try {
-      // Load notes from localStorage or use defaults
-      const savedNotes = localStorage.getItem(STORAGE_KEY);
-      console.log("Loading notes from localStorage:", savedNotes);
-      
-      if (savedNotes) {
-        // Parse the JSON and ensure dates are properly deserialized
-        const parsedNotes = JSON.parse(savedNotes);
-        console.log("Parsed notes:", parsedNotes);
-        
-        if (Array.isArray(parsedNotes) && parsedNotes.length > 0) {
-          return parsedNotes.map(deserializeNote);
-        }
-      }
-      
-      console.log("No saved notes found or invalid format, using default notes");
-      // Add default positions to default notes if they don't exist
-      return defaultNotes.map((note, index) => ({
-        ...note,
-        position: note.position || {
-          x: 100 + (index * 150),
-          y: 100 + (index * 100)
-        }
-      }));
-    } catch (error) {
-      console.error('Failed to load notes from localStorage:', error);
-      toast.error('Failed to load your notes. Using defaults instead.');
-      return defaultNotes.map((note, index) => ({
-        ...note,
-        position: {
-          x: 100 + (index * 150),
-          y: 100 + (index * 100)
-        }
-      }));
-    }
-  });
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Save notes to localStorage whenever they change
+  // Load notes from IndexedDB on component mount
   useEffect(() => {
-    try {
-      if (notes.length === 0) {
-        console.warn("No notes to save, skipping localStorage update");
-        return;
+    const loadNotes = async () => {
+      try {
+        setIsLoading(true);
+        const savedNotes = await getAllNotes();
+        console.log("Loading notes from IndexedDB:", savedNotes);
+        
+        if (savedNotes && savedNotes.length > 0) {
+          setNotes(savedNotes);
+        } else {
+          console.log("No saved notes found, using default notes");
+          // Add default positions to default notes if they don't exist
+          const notesWithPositions = defaultNotes.map((note, index) => ({
+            ...note,
+            position: note.position || {
+              x: 100 + (index * 150),
+              y: 100 + (index * 100)
+            }
+          }));
+          setNotes(notesWithPositions);
+          // Save default notes to IndexedDB
+          await saveAllNotes(notesWithPositions);
+        }
+      } catch (error) {
+        console.error('Failed to load notes from IndexedDB:', error);
+        toast.error('Failed to load your notes. Using defaults instead.');
+        
+        // Fallback to default notes
+        const notesWithPositions = defaultNotes.map((note, index) => ({
+          ...note,
+          position: {
+            x: 100 + (index * 150),
+            y: 100 + (index * 100)
+          }
+        }));
+        setNotes(notesWithPositions);
+      } finally {
+        setIsLoading(false);
       }
-      
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(notes));
-      console.log("Saved notes to localStorage:", notes);
-    } catch (error) {
-      console.error('Failed to save notes to localStorage:', error);
-      toast.error('Failed to save your notes. You may be in private browsing mode.');
-    }
-  }, [notes]);
+    };
 
-  const addNote = useCallback((note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => {
+    loadNotes();
+  }, []);
+
+  // Save notes to IndexedDB whenever they change
+  useEffect(() => {
+    const saveNotes = async () => {
+      try {
+        if (notes.length === 0 || isLoading) {
+          console.warn("No notes to save or still loading, skipping IndexedDB update");
+          return;
+        }
+        
+        await saveAllNotes(notes);
+        console.log("Saved notes to IndexedDB:", notes);
+      } catch (error) {
+        console.error('Failed to save notes to IndexedDB:', error);
+        toast.error('Failed to save your notes.');
+      }
+    };
+
+    saveNotes();
+  }, [notes, isLoading]);
+
+  const addNote = useCallback(async (note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => {
     // Ensure note has a valid position or generate a random one
     const position = note.position && 
       typeof note.position.x === 'number' && 
@@ -108,13 +109,22 @@ export function useNotes() {
     };
     
     setNotes(prev => [newNote, ...prev]);
-    toast.success('Note created');
-    console.log("Note added:", newNote);
+    
+    try {
+      await addNoteToDb(newNote);
+      toast.success('Note created');
+      console.log("Note added:", newNote);
+    } catch (error) {
+      console.error('Failed to add note to IndexedDB:', error);
+      toast.error('Failed to save the note.');
+    }
+    
     return newNote;
   }, []);
 
-  const updateNote = useCallback((id: string, updates: Partial<Omit<Note, 'id' | 'createdAt'>>) => {
+  const updateNote = useCallback(async (id: string, updates: Partial<Omit<Note, 'id' | 'createdAt'>>) => {
     console.log("Updating note:", id, updates);
+    
     setNotes(prev => 
       prev.map(note => 
         note.id === id 
@@ -131,18 +141,34 @@ export function useNotes() {
           : note
       )
     );
+    
+    try {
+      await updateNoteInDb(id, updates);
+    } catch (error) {
+      console.error('Failed to update note in IndexedDB:', error);
+      toast.error('Failed to update the note.');
+    }
   }, []);
 
-  const deleteNote = useCallback((id: string) => {
+  const deleteNote = useCallback(async (id: string) => {
     console.log("Deleting note:", id);
+    
     setNotes(prev => prev.filter(note => note.id !== id));
-    toast.success('Note deleted');
+    
+    try {
+      await deleteNoteFromDb(id);
+      toast.success('Note deleted');
+    } catch (error) {
+      console.error('Failed to delete note from IndexedDB:', error);
+      toast.error('Failed to delete the note.');
+    }
   }, []);
 
   return {
     notes,
     addNote,
     updateNote,
-    deleteNote
+    deleteNote,
+    isLoading
   };
 }
