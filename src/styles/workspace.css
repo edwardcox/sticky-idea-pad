@@ -4,6 +4,7 @@
     overflow: auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+    padding-bottom: 60px; /* Add padding to account for the footer height */
   }
 
   .workspace-scroll::-webkit-scrollbar {
