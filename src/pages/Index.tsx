@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { NoteCard } from '@/components/NoteCard';
 import { AddNoteButton } from '@/components/AddNoteButton';
@@ -110,9 +109,19 @@ const Index = () => {
         )}
       </main>
 
-      <footer className="app-footer py-4 text-center text-sm text-gray-500">
+      <footer className="app-footer py-4 text-center text-sm text-gray-500" style={{
+        position: 'fixed',
+        bottom: '0',
+        left: '0',
+        right: '0',
+        width: '100%',
+        zIndex: '100',
+        backgroundColor: 'white',
+        borderTop: '1px solid rgba(0, 0, 0, 0.1)',
+        boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.05)'
+      }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p>©2025 Edward Cox • Version 1.0</p>
+          <p>©2025 Edward Cox • Version 1.0.1</p>
         </div>
       </footer>
 

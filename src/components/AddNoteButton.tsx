@@ -14,10 +14,11 @@ export function AddNoteButton({ onClick, className }: AddNoteButtonProps) {
     <Button
       onClick={onClick}
       className={cn(
-        "fixed bottom-20 right-6 h-14 w-14 rounded-full shadow-lg z-[200] text-white button-press",
-        "bg-primary hover:bg-primary/90",
+        "fixed bottom-20 right-6 h-14 w-14 rounded-full shadow-lg z-[500] text-white button-press",
+        "bg-primary hover:bg-primary/90 !important",
         className
       )}
+      style={{position: 'fixed', bottom: '80px', right: '24px', zIndex: 500}}
     >
       <Plus size={24} />
     </Button>
