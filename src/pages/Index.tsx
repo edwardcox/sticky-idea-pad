@@ -4,12 +4,16 @@ import { NoteCard } from '@/components/NoteCard';
 import { AddNoteButton } from '@/components/AddNoteButton';
 import { NoteForm } from '@/components/NoteForm';
 import { useNotes } from '@/hooks/useNotes';
-import { StickyNote, Loader2 } from 'lucide-react';
+import { StickyNote, Loader2, LogOut, UserCircle } from 'lucide-react';
+import { useUser, useClerk } from '@clerk/clerk-react';
+import { Button } from '@/components/ui/button';
 
 const Index = () => {
   const { notes, addNote, updateNote, deleteNote, isLoading } = useNotes();
   const [isAddingNote, setIsAddingNote] = useState(false);
   const notesContainerRef = useRef<HTMLDivElement>(null);
+  const { user } = useUser();
+  const { signOut } = useClerk();
   
   const handleAddNote = (newNote: any) => {
     let initialPosition = { x: 100, y: 100 };
@@ -51,8 +55,23 @@ const Index = () => {
             <StickyNote className="h-6 w-6 text-primary" />
             <h1 className="text-xl font-bold">Sticky Ideas</h1>
           </div>
-          <div className="text-sm text-muted-foreground">
-            {notes.length} {notes.length === 1 ? 'note' : 'notes'}
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-muted-foreground">
+              {notes.length} {notes.length === 1 ? 'note' : 'notes'}
+            </div>
+            <div className="flex items-center gap-2">
+              <UserCircle className="h-5 w-5 text-muted-foreground" />
+              <span className="text-sm font-medium">{user?.fullName || user?.username || user?.primaryEmailAddress?.emailAddress}</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => signOut()} 
+                className="flex items-center gap-1"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Sign out</span>
+              </Button>
+            </div>
           </div>
         </div>
       </header>

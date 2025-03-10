@@ -9,6 +9,7 @@ import {
   updateNote as updateNoteInDb, 
   deleteNote as deleteNoteFromDb 
 } from '@/lib/indexedDb';
+import { useUser } from '@clerk/clerk-react';
 
 // Helper to generate a random position within the expanded viewport
 const generateRandomPosition = () => {
@@ -25,14 +26,24 @@ const generateRandomPosition = () => {
 export function useNotes() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { user, isLoaded: isUserLoaded } = useUser();
+  
+  // Create a user-specific store name for IndexedDB
+  const getUserStoreId = useCallback(() => {
+    return user?.id ? `notes-${user.id}` : 'notes-anonymous';
+  }, [user?.id]);
 
-  // Load notes from IndexedDB on component mount
+  // Load notes from IndexedDB on component mount or when user changes
   useEffect(() => {
     const loadNotes = async () => {
+      // Wait for user to be loaded before loading notes
+      if (!isUserLoaded) return;
+      
       try {
         setIsLoading(true);
-        const savedNotes = await getAllNotes();
-        console.log("Loading notes from IndexedDB:", savedNotes);
+        const storeId = getUserStoreId();
+        const savedNotes = await getAllNotes(storeId);
+        console.log(`Loading notes for ${storeId} from IndexedDB:`, savedNotes);
         
         if (savedNotes && savedNotes.length > 0) {
           // Ensure all notes have valid positions
@@ -48,7 +59,7 @@ export function useNotes() {
           // If positions were fixed, update in DB
           if (JSON.stringify(notesWithValidPositions) !== JSON.stringify(savedNotes)) {
             console.log("Updating notes with valid positions");
-            await saveAllNotes(notesWithValidPositions);
+            await saveAllNotes(notesWithValidPositions, storeId);
           }
         } else {
           console.log("No saved notes found, using default notes");
@@ -63,7 +74,7 @@ export function useNotes() {
           }));
           setNotes(notesWithPositions);
           // Save default notes to IndexedDB
-          await saveAllNotes(notesWithPositions);
+          await saveAllNotes(notesWithPositions, storeId);
         }
       } catch (error) {
         console.error('Failed to load notes from IndexedDB:', error);
@@ -85,13 +96,13 @@ export function useNotes() {
     };
 
     loadNotes();
-  }, []);
+  }, [isUserLoaded, getUserStoreId]);
 
   // Save notes to IndexedDB whenever they change
   useEffect(() => {
     const saveNotes = async () => {
       try {
-        if (notes.length === 0 || isLoading) {
+        if (notes.length === 0 || isLoading || !isUserLoaded) {
           console.warn("No notes to save or still loading, skipping IndexedDB update");
           return;
         }
@@ -104,8 +115,9 @@ export function useNotes() {
             : generateRandomPosition()
         }));
         
-        await saveAllNotes(notesToSave);
-        console.log("Saved notes to IndexedDB:", notesToSave);
+        const storeId = getUserStoreId();
+        await saveAllNotes(notesToSave, storeId);
+        console.log(`Saved notes to IndexedDB for ${storeId}:`, notesToSave);
       } catch (error) {
         console.error('Failed to save notes to IndexedDB:', error);
         toast.error('Failed to save your notes.');
@@ -113,7 +125,7 @@ export function useNotes() {
     };
 
     saveNotes();
-  }, [notes, isLoading]);
+  }, [notes, isLoading, isUserLoaded, getUserStoreId]);
 
   const addNote = useCallback(async (note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => {
     // Ensure note has a valid position or generate a random one
@@ -135,7 +147,8 @@ export function useNotes() {
     setNotes(prev => [newNote, ...prev]);
     
     try {
-      await addNoteToDb(newNote);
+      const storeId = getUserStoreId();
+      await addNoteToDb(newNote, storeId);
       toast.success('Note created');
       console.log("Note added:", newNote);
     } catch (error) {
@@ -144,7 +157,7 @@ export function useNotes() {
     }
     
     return newNote;
-  }, []);
+  }, [getUserStoreId]);
 
   const updateNote = useCallback(async (id: string, updates: Partial<Omit<Note, 'id' | 'createdAt'>>) => {
     console.log("Updating note:", id, updates);
@@ -167,12 +180,13 @@ export function useNotes() {
     );
     
     try {
-      await updateNoteInDb(id, updates);
+      const storeId = getUserStoreId();
+      await updateNoteInDb(id, updates, storeId);
     } catch (error) {
       console.error('Failed to update note in IndexedDB:', error);
       toast.error('Failed to update the note.');
     }
-  }, []);
+  }, [getUserStoreId]);
 
   const deleteNote = useCallback(async (id: string) => {
     console.log("Deleting note:", id);
@@ -180,13 +194,14 @@ export function useNotes() {
     setNotes(prev => prev.filter(note => note.id !== id));
     
     try {
-      await deleteNoteFromDb(id);
+      const storeId = getUserStoreId();
+      await deleteNoteFromDb(id, storeId);
       toast.success('Note deleted');
     } catch (error) {
       console.error('Failed to delete note from IndexedDB:', error);
       toast.error('Failed to delete the note.');
     }
-  }, []);
+  }, [getUserStoreId]);
 
   return {
     notes,

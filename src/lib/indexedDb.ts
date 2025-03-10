@@ -3,10 +3,10 @@ import { Note } from './data';
 
 const DB_NAME = 'sticky-ideas-db';
 const DB_VERSION = 1;
-const NOTES_STORE = 'notes';
+const DEFAULT_STORE = 'notes';
 
-// Initialize the database
-export const initDB = (): Promise<IDBDatabase> => {
+// Initialize the database with a specific store name for the user
+export const initDB = (storeName: string = DEFAULT_STORE): Promise<IDBDatabase> => {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open(DB_NAME, DB_VERSION);
 
@@ -17,14 +17,44 @@ export const initDB = (): Promise<IDBDatabase> => {
 
     request.onsuccess = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
-      resolve(db);
+      
+      // Check if the store exists, if not create it
+      if (!db.objectStoreNames.contains(storeName)) {
+        // Close the current database connection
+        db.close();
+        
+        // Increase version to trigger onupgradeneeded
+        const newRequest = indexedDB.open(DB_NAME, DB_VERSION + 1);
+        
+        newRequest.onupgradeneeded = (e) => {
+          const db = (e.target as IDBOpenDBRequest).result;
+          if (!db.objectStoreNames.contains(storeName)) {
+            db.createObjectStore(storeName, { keyPath: 'id' });
+          }
+        };
+        
+        newRequest.onsuccess = (e) => {
+          resolve((e.target as IDBOpenDBRequest).result);
+        };
+        
+        newRequest.onerror = (e) => {
+          console.error('Error upgrading IndexedDB:', e);
+          reject('Error upgrading IndexedDB');
+        };
+      } else {
+        resolve(db);
+      }
     };
 
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
-      // Create object store for notes if it doesn't exist
-      if (!db.objectStoreNames.contains(NOTES_STORE)) {
-        db.createObjectStore(NOTES_STORE, { keyPath: 'id' });
+      // Create object store if it doesn't exist
+      if (!db.objectStoreNames.contains(storeName)) {
+        db.createObjectStore(storeName, { keyPath: 'id' });
+      }
+      // Also create the default store if not exists
+      if (!db.objectStoreNames.contains(DEFAULT_STORE)) {
+        db.createObjectStore(DEFAULT_STORE, { keyPath: 'id' });
       }
     };
   });
@@ -71,12 +101,12 @@ const deserializeNote = (dbNote: any): Note => {
 };
 
 // Get all notes from the database
-export const getAllNotes = async (): Promise<Note[]> => {
+export const getAllNotes = async (storeName: string = DEFAULT_STORE): Promise<Note[]> => {
   try {
-    const db = await initDB();
+    const db = await initDB(storeName);
     return new Promise((resolve, reject) => {
-      const transaction = db.transaction(NOTES_STORE, 'readonly');
-      const store = transaction.objectStore(NOTES_STORE);
+      const transaction = db.transaction(storeName, 'readonly');
+      const store = transaction.objectStore(storeName);
       const request = store.getAll();
 
       request.onsuccess = () => {
@@ -100,11 +130,11 @@ export const getAllNotes = async (): Promise<Note[]> => {
 };
 
 // Save notes to the database
-export const saveAllNotes = async (notes: Note[]): Promise<void> => {
+export const saveAllNotes = async (notes: Note[], storeName: string = DEFAULT_STORE): Promise<void> => {
   try {
-    const db = await initDB();
-    const transaction = db.transaction(NOTES_STORE, 'readwrite');
-    const store = transaction.objectStore(NOTES_STORE);
+    const db = await initDB(storeName);
+    const transaction = db.transaction(storeName, 'readwrite');
+    const store = transaction.objectStore(storeName);
 
     // Clear current data
     store.clear();
@@ -133,11 +163,11 @@ export const saveAllNotes = async (notes: Note[]): Promise<void> => {
 };
 
 // Add a single note to the database
-export const addNote = async (note: Note): Promise<void> => {
+export const addNote = async (note: Note, storeName: string = DEFAULT_STORE): Promise<void> => {
   try {
-    const db = await initDB();
-    const transaction = db.transaction(NOTES_STORE, 'readwrite');
-    const store = transaction.objectStore(NOTES_STORE);
+    const db = await initDB(storeName);
+    const transaction = db.transaction(storeName, 'readwrite');
+    const store = transaction.objectStore(storeName);
 
     const serializedNote = serializeNote(note);
     store.add(serializedNote);
@@ -160,11 +190,11 @@ export const addNote = async (note: Note): Promise<void> => {
 };
 
 // Update a note in the database
-export const updateNote = async (id: string, updates: Partial<Note>): Promise<void> => {
+export const updateNote = async (id: string, updates: Partial<Note>, storeName: string = DEFAULT_STORE): Promise<void> => {
   try {
-    const db = await initDB();
-    const transaction = db.transaction(NOTES_STORE, 'readwrite');
-    const store = transaction.objectStore(NOTES_STORE);
+    const db = await initDB(storeName);
+    const transaction = db.transaction(storeName, 'readwrite');
+    const store = transaction.objectStore(storeName);
     const request = store.get(id);
 
     request.onsuccess = () => {
@@ -205,11 +235,11 @@ export const updateNote = async (id: string, updates: Partial<Note>): Promise<vo
 };
 
 // Delete a note from the database
-export const deleteNote = async (id: string): Promise<void> => {
+export const deleteNote = async (id: string, storeName: string = DEFAULT_STORE): Promise<void> => {
   try {
-    const db = await initDB();
-    const transaction = db.transaction(NOTES_STORE, 'readwrite');
-    const store = transaction.objectStore(NOTES_STORE);
+    const db = await initDB(storeName);
+    const transaction = db.transaction(storeName, 'readwrite');
+    const store = transaction.objectStore(storeName);
     
     store.delete(id);
 
