@@ -7,20 +7,15 @@ import App from './App'
 import './index.css'
 
 // Get Clerk publishable key from environment variable
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_d29ya2luZy1yZXB0aWxlLTc2LmNsZXJrLmFjY291bnRzLmRldiQ';
 
 // Create a flag to check if we're in development mode without a key
-const isDevelopmentWithoutKey = import.meta.env.DEV && !PUBLISHABLE_KEY
-
-// For development, use a mock key if not provided
-const publishableKey = isDevelopmentWithoutKey 
-  ? 'pk_test_dummy-key-for-development'
-  : PUBLISHABLE_KEY
+const isDevelopmentWithoutKey = import.meta.env.DEV && !import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ClerkProvider 
-      publishableKey={publishableKey} 
+      publishableKey={PUBLISHABLE_KEY} 
       afterSignOutUrl="/sticky-ideas"
     >
       <BrowserRouter basename="/sticky-ideas">
