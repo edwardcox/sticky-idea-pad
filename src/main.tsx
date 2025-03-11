@@ -12,18 +12,18 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_d
 // Create a flag to check if we're in development mode without a key
 const isDevelopmentWithoutKey = import.meta.env.DEV && !import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
-// Define base path for consistency
-const basePath = '/sticky-ideas';
+// Define base path for consistency - note the trailing slash
+const basePath = '/sticky-ideas/';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ClerkProvider 
       publishableKey={PUBLISHABLE_KEY} 
       afterSignOutUrl={basePath}
-      signInUrl={`${basePath}/sign-in`}
-      signUpUrl={`${basePath}/sign-up`}
+      signInUrl={`${basePath}sign-in`}
+      signUpUrl={`${basePath}sign-up`}
     >
-      <BrowserRouter basename={basePath}>
+      <BrowserRouter basename={basePath.slice(0, -1)}>
         <App />
       </BrowserRouter>
     </ClerkProvider>

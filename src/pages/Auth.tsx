@@ -31,12 +31,12 @@ const Auth = () => {
             {isSignUp ? (
               <>
                 <h2 className="text-2xl font-bold mb-6 text-center">Create your account</h2>
-                <SignUp redirectUrl="/" signInUrl="/sign-in" />
+                <SignUp afterSignUpUrl="/" signInUrl="/sign-in" />
               </>
             ) : (
               <>
                 <h2 className="text-2xl font-bold mb-6 text-center">Welcome back</h2>
-                <SignIn redirectUrl="/" signUpUrl="/sign-up" />
+                <SignIn afterSignInUrl="/" signUpUrl="/sign-up" />
               </>
             )}
           </div>
