@@ -5,7 +5,11 @@ import { toast } from 'sonner';
 import { getAllNotes, saveAllNotes } from '@/lib/indexedDb';
 import { prepareNotesWithValidPositions, createDefaultNotesWithPositions } from '@/lib/utils/noteUtils';
 
-export function useLoadNotes(storeId: string, isUserLoaded: boolean) {
+export function useLoadNotes(
+  storeId: string, 
+  isUserLoaded: boolean,
+  indexedDBAvailable: boolean = true
+) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -17,6 +21,16 @@ export function useLoadNotes(storeId: string, isUserLoaded: boolean) {
       
       try {
         setIsLoading(true);
+        
+        // If IndexedDB is not available, use default notes
+        if (!indexedDBAvailable) {
+          console.log("IndexedDB not available, using default notes");
+          const defaultNotes = createDefaultNotesWithPositions();
+          setNotes(defaultNotes);
+          setIsLoading(false);
+          return;
+        }
+        
         const savedNotes = await getAllNotes(storeId);
         console.log(`Loading notes for ${storeId} from IndexedDB:`, savedNotes);
         
@@ -40,7 +54,8 @@ export function useLoadNotes(storeId: string, isUserLoaded: boolean) {
         }
       } catch (error) {
         console.error('Failed to load notes from IndexedDB:', error);
-        toast.error('Failed to load your notes. Using defaults instead.');
+        // Don't show error toast for initial load issues to avoid confusion
+        // toast.error('Failed to load your notes. Using defaults instead.');
         
         // Fallback to default notes
         const defaultWithPositions = createDefaultNotesWithPositions();
@@ -51,7 +66,7 @@ export function useLoadNotes(storeId: string, isUserLoaded: boolean) {
     };
 
     loadNotes();
-  }, [isUserLoaded, storeId]);
+  }, [isUserLoaded, storeId, indexedDBAvailable]);
 
   return { notes, setNotes, isLoading };
 }

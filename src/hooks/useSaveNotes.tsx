@@ -9,12 +9,19 @@ export function useSaveNotes(
   notes: Note[], 
   isLoading: boolean, 
   isUserLoaded: boolean, 
-  storeId: string
+  storeId: string,
+  indexedDBAvailable: boolean = true
 ) {
   // Save notes to IndexedDB whenever they change
   useEffect(() => {
     const saveNotes = async () => {
       try {
+        // Skip saving if IndexedDB is not available
+        if (!indexedDBAvailable) {
+          console.log("IndexedDB not available, skipping save operation");
+          return;
+        }
+        
         if (notes.length === 0 || isLoading || !isUserLoaded) {
           console.warn("No notes to save or still loading, skipping IndexedDB update");
           return;
@@ -32,10 +39,15 @@ export function useSaveNotes(
         console.log(`Saved notes to IndexedDB for ${storeId}:`, notesToSave);
       } catch (error) {
         console.error('Failed to save notes to IndexedDB:', error);
-        toast.error('Failed to save your notes.');
+        // Don't show error toast every time to avoid spamming the user
       }
     };
 
-    saveNotes();
-  }, [notes, isLoading, isUserLoaded, storeId]);
+    // Add a debounce to avoid frequent saves
+    const timeoutId = setTimeout(() => {
+      saveNotes();
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [notes, isLoading, isUserLoaded, storeId, indexedDBAvailable]);
 }
