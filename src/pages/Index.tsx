@@ -8,12 +8,17 @@ import { StickyNote, Loader2, LogOut, UserCircle } from 'lucide-react';
 import { useUser, useClerk } from '@clerk/clerk-react';
 import { Button } from '@/components/ui/button';
 
+// Check if we're in development without a Clerk key
+const isDevelopmentWithoutKey = import.meta.env.DEV && !import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
 const Index = () => {
   const { notes, addNote, updateNote, deleteNote, isLoading } = useNotes();
   const [isAddingNote, setIsAddingNote] = useState(false);
   const notesContainerRef = useRef<HTMLDivElement>(null);
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  
+  // Only use Clerk hooks if we're not in development mode without a key
+  const { user } = !isDevelopmentWithoutKey ? useUser() : { user: null };
+  const { signOut } = !isDevelopmentWithoutKey ? useClerk() : { signOut: () => {} };
   
   const handleAddNote = (newNote: any) => {
     let initialPosition = { x: 100, y: 100 };
@@ -59,19 +64,29 @@ const Index = () => {
             <div className="text-sm text-muted-foreground">
               {notes.length} {notes.length === 1 ? 'note' : 'notes'}
             </div>
-            <div className="flex items-center gap-2">
-              <UserCircle className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm font-medium">{user?.fullName || user?.username || user?.primaryEmailAddress?.emailAddress}</span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => signOut()} 
-                className="flex items-center gap-1"
-              >
-                <LogOut className="h-4 w-4" />
-                <span>Sign out</span>
-              </Button>
-            </div>
+            {!isDevelopmentWithoutKey && user && (
+              <div className="flex items-center gap-2">
+                <UserCircle className="h-5 w-5 text-muted-foreground" />
+                <span className="text-sm font-medium">
+                  {user?.fullName || user?.username || user?.primaryEmailAddress?.emailAddress}
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => signOut()} 
+                  className="flex items-center gap-1"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Sign out</span>
+                </Button>
+              </div>
+            )}
+            {isDevelopmentWithoutKey && (
+              <div className="flex items-center gap-2">
+                <UserCircle className="h-5 w-5 text-muted-foreground" />
+                <span className="text-sm font-medium">Development Mode</span>
+              </div>
+            )}
           </div>
         </div>
       </header>
