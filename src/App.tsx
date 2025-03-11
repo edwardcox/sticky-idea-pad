@@ -43,8 +43,8 @@ const App = () => {
                     </SignedOut>
                   </>
                 } />
-                <Route path="/sign-in" element={<Auth />} />
-                <Route path="/sign-up" element={<Auth />} />
+                <Route path="/sign-in/*" element={<Auth />} />
+                <Route path="/sign-up/*" element={<Auth />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </ClerkLoaded>
